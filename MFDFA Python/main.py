@@ -154,35 +154,105 @@ def MFDFA1(data):
     
 def MDFA2(data):
     data=np.cumsum(data-np.mean(data))
-    scale1=[7,9,11,13,15,17]
-    halfmax=math.floor(max(scale1)/2)
-    Time_index=range(halfmax+1,len(data)-halfmax)
-    m=1
 
     exponents=np.linspace(math.log2(16),math.log2(1024),19)
-    scale2=np.around(2**exponents)
+    scale=np.around(2**exponents)
+    halfmax=math.floor(max(scale)/2)
+    Time_index=list(range(halfmax+1,len(data)-halfmax))
 
-    scale=[]
-    scale.extend(scale1)
-    scale.extend(scale2[1:None])
-    scale=[int(i) for i in scale]# mirar esto
-    print(scale)
     q=np.linspace(-5,5,101)
 
-
-
-
+    m=2
+    segments=[]
     RMS=[]
-    
+    qRMS=[]
+    Fq=[]
+    Hq=[]
+    qRegLine=[]
+    RMS=[]
 
-    for ns in range(0,len(scale1)):
-        halfseg=math.floor(scale1[ns]/2)
+    
+    #i=(np.where(q==0))#la posisicon de 0 en q
+
+    for i in range(0,len(q)):
+        Fq.append([])
+
+
+    for ns in range(0,len(scale)):
+        segments.append(math.floor(len(data)/scale[ns]))
+        RMS.append([])
+        Idx_start=0
+        sum=int(scale[ns])
+        Idx_stop=sum-1
+        qRMS.append([])
+        for v in range(0,segments[-1]):
+            Index=range(Idx_start,Idx_stop)
+            X_Idx=data[Index]
+            C=np.polyfit(Index,X_Idx,m)
+            fit=np.polyval(C,Index)
+            RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
+            Idx_start=Idx_stop+1
+            Idx_stop=Idx_stop+sum
+
+
+        for nq in range(0,len(q)):
+            qRMS[ns]=RMS[ns]**q[nq]
+            if q[nq]==0:
+                i=nq
+                Fq[nq].append(np.exp(0.5*np.mean([l**2 for l in np.log(RMS[ns])])))
+            else:
+                Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
+
+
+    for nq in range(0,len(q)):
+        C=np.polyfit(np.log2(scale),np.log2(Fq[nq]),1)
+        Hq.append(C[0])
+        qRegLine.append(np.polyval(C,np.log2(scale)))
+
+
+
+    for ns in range(0,len(scale)):
+        halfseg=math.floor(scale[ns]/2)
         RMS.append([])
         for v in Time_index:
             T_index=range(v-halfseg,v+halfseg)
             C=np.polyfit(T_index,data[T_index],m)
             fit=np.polyval(C,T_index)
             RMS[ns].append(np.sqrt(np.mean((data[T_index]-fit)**2)))
+
+    C=np.polyfit(np.log2(scale),np.log2(Fq[i]),1)
+    Regfit=np.polyval(C,np.log2(scale))
+    maxL=len(data)
+
+    resRMS=[]
+    logscale=[]
+    Ht=[]
+
+    for ns in range(0,len(scale)):
+        Ht.append([])
+        RMSt=RMS[ns][Time_index[0]:Time_index[-1]]
+        resRMS.append(Regfit[ns]-np.log2(RMSt))
+        logscale.append(np.log2(maxL)-np.log2(scale[ns]))
+        Ht[ns].append(resRMS[ns]/logscale[ns]+Hq[i])
+
+    X=np.matrix(Ht)
+    Ht_aux=X.getA1()
+    Ht_row=[]
+    for i in range(0,len(Ht_aux)):
+        Ht_row=Ht_row+(Ht_aux[i].tolist())
+
+    BinNumb=int(np.around(np.sqrt(len(Ht_row))))
+    freq,Htbin=np.histogram(Ht_row,BinNumb)
+    Ph=freq/np.sum(freq)
+    Ph_norm=Ph/max(Ph)
+    Dh=1-(np.log(Ph_norm)/np.log(np.mean(np.diff(Htbin))))# las divisiones entre cero pueden ocurrir
+    plt.figure(6)
+    print(len(Htbin))
+    print(Htbin)
+    print(len(Dh))
+    print(Dh)
+    plt.hist(Htbin,Dh)
+    plt.show()
 
 
 if __name__ == "__main__":

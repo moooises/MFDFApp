@@ -2,6 +2,7 @@
 clear all
 close all
 load fractaldata.mat
+warning off;
 
 %%
 X1=cumsum(multifractal-mean(multifractal));

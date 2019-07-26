@@ -106,8 +106,8 @@ Dh1=1-(log(Ph1_norm)./-log(mean(scale1)));
 Dh2=1-(log(Ph2_norm)./-log(mean(scale1)));
 Dh3=1-(log(Ph3_norm)./-log(mean(scale1)));
 
-clear RMS_scale1 RMS_scale2 RMS_scale3 fit1 fit2 fit3 C1 C2 C3 Index1 halfseg1 m1 halfmax1 scale1 Ch1 Ch2 Ch3 F1 F2 F3 X1 X2 X3 maxL1 Ph1_norm Ph2_norm Ph3_norm freq1 freq2 freq3 BinNumb1 BinNumb2 BinNumb3 Ht1_row Ht2_row Ht3_row logscale1 resRMS1 resRMS2 resRMS3 RMS1 RMS2 RMS3 
-clear segments2 Index4 C4 fit4 RMS_scale4 Index5 C5 fit5 RMS_scale5 Index6 C6 fit6 RMS_scale6 qRMS4 qRMS5 qRMS6 Fq4 Fq5 Fq6 Ch4 Ch5 Ch6 Hq4 Hq5 Hq6 q1
+%clear RMS_scale1 RMS_scale2 RMS_scale3 fit1 fit2 fit3 C1 C2 C3 Index1 halfseg1 m1 halfmax1 scale1 Ch1 Ch2 Ch3 F1 F2 F3 X1 X2 X3 maxL1 Ph1_norm Ph2_norm Ph3_norm freq1 freq2 freq3 BinNumb1 BinNumb2 BinNumb3 Ht1_row Ht2_row Ht3_row logscale1 resRMS1 resRMS2 resRMS3 RMS1 RMS2 RMS3 
+%clear segments2 Index4 C4 fit4 RMS_scale4 Index5 C5 fit5 RMS_scale5 Index6 C6 fit6 RMS_scale6 qRMS4 qRMS5 qRMS6 Fq4 Fq5 Fq6 Ch4 Ch5 Ch6 Hq4 Hq5 Hq6 q1
 X1=Time_index1;
 YMatrix1=[multifractal(Time_index1),monofractal(Time_index1)-5,whitenoise(Time_index1)-13];
 YMatrix2=[Ht1(5,:);Ht2(5,:);Ht3(5,:)];
@@ -124,8 +124,8 @@ maxHt=max(Ht1(end-1,:));
 minHt=min(Ht1(end-1,:));
 Numb1=find(Ht1(end-1,:)==max(Ht1(end-1,:)));
 Numb2=find(Ht1(end-1,:)==min(Ht1(end-1,:)));
-clear Regfit1 Regfit2 Regfit3 Htbin1 Ph1 Htbin2 Ph2 Htbin3 Ph3 Dh1 Dh2 Dh3 Ht1 Ht2 Ht3 Time_index1 ns v 
-clear exponents ns nq v scale2 scmin scmax scres
+%clear Regfit1 Regfit2 Regfit3 Htbin1 Ph1 Htbin2 Ph2 Htbin3 Ph3 Dh1 Dh2 Dh3 Ht1 Ht2 Ht3 Time_index1 ns v 
+%clear exponents ns nq v scale2 scmin scmax scres
 
 % Create figure
 figure1 = figure('PaperSize',[20.98 29.68],'Color',[1 1 1]);
@@ -328,5 +328,5 @@ annotation(figure1,'textarrow',[0.513909224011713 0.546852122986823],...
     'String',{'Ht_m_a_x'},...
     'LineWidth',2);
 
-clear figure1 legend1 axes1 axes2 axes3 axes4 ans pplot1 pplot2 X1 X2 X3 X4 Y1 Y2 Y3 Y4 Y5 Y6 YMatrix1 YMatrix2
+%clear figure1 legend1 axes1 axes2 axes3 axes4 ans pplot1 pplot2 X1 X2 X3 X4 Y1 Y2 Y3 Y4 Y5 Y6 YMatrix1 YMatrix2
 ns=1;v=1;
