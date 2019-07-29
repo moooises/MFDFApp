@@ -247,12 +247,20 @@ def MDFA2(data):
     Ph_norm=Ph/max(Ph)
     Dh=1-(np.log(Ph_norm)/np.log(np.mean(np.diff(Htbin))))# las divisiones entre cero pueden ocurrir
     plt.figure(6)
-    print(len(Htbin))
-    print(Htbin)
+    plt.xlabel('Htbin')
+    plt.ylabel('Dh')
+    plt.plot(Htbin[0:-1],Dh)
+
+    plt.figure(7)
+    plt.xlabel('Htbin')
+    plt.ylabel('Ph')
+    plt.plot(Htbin[0:-1],Ph)
+    plt.show()
     print(len(Dh))
     print(Dh)
-    plt.hist(Htbin,Dh)
-    plt.show()
+    print()
+    print(len(Ph))
+    print(Ph)
 
 
 if __name__ == "__main__":
@@ -260,7 +268,7 @@ if __name__ == "__main__":
     multifractal=data['multifractal']
     #H=DFA(multifractal)
  
-    #Hq,tq,hq,Dq,Fq=MFDFA1(multifractal)
+    Hq,tq,hq,Dq,Fq=MFDFA1(multifractal)
 
     #if H<0.2:
     #    Hq-=1
