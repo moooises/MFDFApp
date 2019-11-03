@@ -1,0 +1,24 @@
++------------------------------------------------------------------+
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                Como elegir los valores de m adecuado             |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
++----------------------------------+-------------------------------+
+                                   |
+                                   |
+                                   |
+                                   |
+                                   v
+- Un valor alto de m obtiene una forma mas compleja en la tendencia
+
+- Una m entre 1 y 3 suele ser mas que suficiente, mirar otros valores
+    para datos obtenidos por nostros
+
+-Mirar lo de descomposicion de ondas, movimiento medio y descomposicion
+    (Mirar paper al final)

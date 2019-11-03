@@ -1,6 +1,6 @@
-import scipy.io
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.io
 import math
 
 def DFA(data,scale,m):

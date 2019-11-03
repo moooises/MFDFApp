@@ -1,0 +1,43 @@
++------------------------------------------------------------------+
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                Como elegir una escala adecuada                   |
+|                 según el tamaño de la muestra                    |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
++----------------------------------+-------------------------------+
+                                   |
+                                   |
+                                   |
+                                   |
+                                   v
+
+---->Minimo:
+          -Debe siempre mayor de 10
+          -Debe ser considerablemente mayor que el orden polinomico 'm',
+             por lo general este valor suele ser 2 o 1, rara vez 3.
+          -Esto se hace para prevenir el overfitting de la tendencia 
+            polinomica(pendiente)
+
+---->Maximo:
+          -Debe ser lo suficientemente pequeño para obtener un numero
+             suficiente de segmentos
+          -Ademas debe ofrecer espacios iguales(aprox.) estre cada valor
+             de la escala y el Fq
+          -Graficamentes, al plotear log2(scale) y log2(Fq[x]), si la linea
+             es aproximandamente lineal, esta bien representado y son buenos valores
+
+          - Un maximo por debajo de un 1/10 del tamaño de la muestra deberia dar
+             al menos 10 segmentos que cumplan lo anterior 
+
+---->Numero de segmentos:
+           -Mientras sea un numero entre maximo y minimo y que deje suficiente
+              espacio entre cada valor para que sea representativo es suficiente
+
+            -No necesita muchos valores, alrededor de 20 parece adecuado
+    
+           --Investigar mas

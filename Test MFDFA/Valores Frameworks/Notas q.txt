@@ -1,0 +1,30 @@
++------------------------------------------------------------------+
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                Como elegir los valores de q adecuado             |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
+|                                                                  |
++----------------------------------+-------------------------------+
+                                   |
+                                   |
+                                   |
+                                   |
+                                   v
+
+- Se eligen tanto el negativo como el positivo, ambos el mismo valor
+    en positivo y en negatico
+
+- Se deben evitar numeros grandes, pero permitelo en el framework
+    o interfaz
+
+- Cuando se tenga una anchura del espectro multifractal muy alta habra 
+    gran diferencia entre los segmentos de cada q
+
+- Para datos biomedicos -5 y 5 es suficiente, comprobar con mas datos
+
+- 
