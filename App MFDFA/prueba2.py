@@ -2,47 +2,43 @@ from tkinter import *
 from tkinter import ttk
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import askopenfilename
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.io
+import math
+import csv
+import sys
 
-#raiz=Tk()
+def index(q):
+    q=np.around(q,1)
+    aux=np.around(q[0],0)
+    aux=int(aux)
+    if aux<0:
+        aux=aux+1
+        auxm=(-1*aux)+1
+    print(aux)
+    print(auxm)
+    div=list(range(aux,auxm))
+    print(div)
+    i=0
+    j=0
+    qindex=[]
+    print(len(q))
+    while j<len(q) and i<len(div):
+        if div[i]!=0 and q[j]/div[i]==1:
+            i=i+1
+            qindex.append(j)
+        else:
+            if q[j]==0:
+                i=i+1
+                qindex.append(j)
+        
+        j=j+1
 
-#raiz.geometry('300x200')
-
-#raiz.configure(bg='beige')
-
-#raiz.title('Aplicacion')
-
-#ttk.Button(raiz, text='Salir', command=quit).pack(side=BOTTOM)
-
-#raiz.mainloop()
-
+    return qindex
 
 class Application():
 
-    #def reload_q_max(self):
-     #   global update_in_progress
-      #  if update_in_progress: return
-       # try:
-        #    temp=self.q_entry.get()
-        #except ValueError:
-        #    return
-        #new=self.q_entry.get()
-        #update_in_progress=True
-        #print(str(new))
-        #self.q_max_entry.set(str(new))
-        #update_in_progress=False
-
-    #def reload_q_min(self):
-     #   global update_in_progress
-     #   if update_in_progress: return
-      #  try:
-       #     temp=self.q_entry.get()
-        #except ValueError:
-         #   return         
-        #new=q.get()
-        ##update_in_progress=True
-        #print(str(new))
-        #q_min.set('-'+str(new))
-        #update_in_progress=False
 
     def reload_q_min_max(self):
         aux=str(self.q_entry.get())
@@ -108,22 +104,163 @@ class Application():
         self.about_active=False
         self.raiz_about.destroy()
 
+    def write_text(self,output):
+        self.result_text.insert(END,output)
+
     def open_file(self):
-        global path
         file=askopenfilename()
         if file is not None and file.endswith('.csv'):            
-            path=file
-            print(path)
+            self.path_time=file
+            print(self.path_time)
         else:
-            print("Bad file")#write on text widget
+            self.write_text("Warning: This app only support .csv files")
+
+        file=askopenfilename()
+        if file is not None and file.endswith('.csv'):            
+            self.path=file
+            print(self.path)
+        else:
+            self.path_time=""
+            self.write_text("Warning: This app only support .csv files")#write on text widget
+
+
+
+
+    def prepare_MFDFA(self,path_file,path_file_time,scale_min,scale_max,scale_res,q_min,q_max,m,separator,checkbutton):
+        aux=""
+        if len(q_min)>2:
+            if q_min[0]=='-':
+                i=1
+            else:
+                i=0
+
+            while q_min[i]!='.' or i==len(q_min):
+                aux=aux+q_min[i]
+                i=i+1
+
+            if q_min[i]=='.':
+                if (i+1)!=len(q_min):
+                    i=i+1
+                    aux=aux+q_min[i]
+                else:
+                    aux=aux+'0'
+            else:
+                aux=aux+'0'
+
+        else:
+            if q_min[0]=='-':
+                aux=q_min[1]+'0'
+            else:
+                aux=q_min[0]+'0'
+        cant=int(aux)
+        aux=""
+        if len(q_max)>2:
+            if q_max[0]=='-':
+                i=1
+            else:
+                i=0
+
+            while q_max[i]!='.' or i==len(q_max):
+                aux=aux+q_max[i]
+                i=i+1
+
+            if q_max[i]=='.':
+                if (i+1)!=len(q_max):
+                    i=i+1
+                    aux=aux+q_max[i]
+                else:
+                    aux=aux+'0'
+            else:
+                aux=aux+'0'
+
+        else:
+            if q_max[0]=='-':
+                aux=q_max[1]+'0'
+            else:
+                aux=q_max[0]+'0'
+        cant=cant+int(aux)+1
+
+        print(cant)
+        m=int(m)
+        exponents=np.linspace(math.log2(int(scale_min)),math.log2(int(scale_max)),int(scale_res))
+        scale=np.around(2**exponents,0)
+        q=np.linspace(float(q_min),float(q_max),cant)
+        if separator=='':
+            separator='|'
+
+        csv.field_size_limit(sys.maxsize)
+        with open(path_file_time) as file:
+            reader_time=csv.reader(file,delimiter=separator)
+            time=list(reader_time)#arreglar esto
+
+        with open(path_file) as file:
+            reader=csv.reader(file,delimiter=separator)
+            data=list(reader)
+
+        q_index=index(q)
+        print(q_index)
+        
+
+        print(m)
+        print(scale)
+        print(q)
+        print(time[0][0])
+        print()
+        print(data[0][0])
+        #Hq,tq,hq,Dq,Fq=start_MFDFA(reader)
+
+
+
+
+    def start(self):
+        output=""
+        scale_min=self.scale_min_entry.get()
+        if scale_min=="":
+            output=output+"Min value in scale not given\n"
+        scale_max=self.scale_max_entry.get()
+        if scale_max=="":
+            output=output+"Max value in scale not given\n"
+        scale_res=self.scale_res_entry.get()
+        if scale_res=="":
+            output=output+"Res value in scale not given\n" 
+        q_min=self.q_min_entry.get()
+        if q_min=="":
+            output=output+"q min value in q not given\n"   
+        q_max=self.q_max_entry.get()
+        if q_max=="":
+            output=output+"q max value in q not given\n"
+
+        path_file=self.path
+        path_file_time=self.path_time
+        if path_file_time=="":
+            output=output+"No data file selected\n"
+        else:
+            if path_file[-4:]!=".csv":
+                output=output+"The file selected is not a .csv file\n"
+
+        if path_file=="":
+            output=output+"No data file selected\n"
+        else:
+            if path_file[-4:]!=".csv":
+                output=output+"The file selected is not a .csv file\n"
+
+        separator=self.separator_entry.get()
+        m=self.m_spinbox.get()
+        if output!="":
+            self.write_text(output)
+        else:
+            self.prepare_MFDFA(path_file,path_file_time,scale_min,scale_max,scale_res,q_min,q_max,m,separator,self.checkbutton)
+
 
 
     def __init__(self):
+        self.path=""
+        self.path_time=""
 
         self.raiz=Tk()
         self.info_active=False
         self.about_active=False
-
+        self.checkbutton=StringVar()
 
         self.raiz.grab_set()
         #self.raiz.geometry('300x200')
@@ -200,11 +337,11 @@ class Application():
 
         #Noise like
      
-        self.noise_checkbutton=Checkbutton(self.raiz,text='Noise structure',onvalue=1,offvalue=0)
+        self.noise_checkbutton=Checkbutton(self.raiz,text='Noise structure',onvalue=1,offvalue=0,variable=self.checkbutton)
         self.noise_checkbutton.grid(row=15,column=1, sticky=E)
 
         #Procesar
-        self.start_button=Button(self.raiz, text='Start')
+        self.start_button=Button(self.raiz, text='Start', command=self.start)
         self.start_button.grid(row=15, column=2)
 
         #ttk.Button(self.raiz, text='Salir', command=self.raiz.destroy).grid(row=15,column=0)
@@ -217,10 +354,14 @@ class Application():
         self.raiz.grid_rowconfigure(12, minsize=50)
         self.raiz.grid_rowconfigure(15, minsize=50)
 
+        self.write_text("First select the time file and then select the data file")
+
+
         self.raiz.mainloop()
 
 
 
 if __name__=='__main__':
+
     mi_app=Application()
     
