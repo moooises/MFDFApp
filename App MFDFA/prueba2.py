@@ -37,93 +37,6 @@ def index(q):
 
     return qindex
 
-def MFDFA1(data,scale,q,m,qindex,Adjustment):
-    #probar con los arrays de numpy
-    data=np.cumsum(data-np.mean(data))
-
-
-    segments=[]
-    RMS=[]
-    qRMS=[]
-    Fq=[]
-    Hq=[]
-    qRegLine=[]
-
-    for i in range(0,len(q)):
-        Fq.append([])
-
-
-    for ns in range(0,len(scale)):
-        segments.append(math.floor(len(data)/scale[ns]))
-        RMS.append([])
-        Idx_start=0
-        sum=int(scale[ns])
-        Idx_stop=sum-1
-        qRMS.append([])
-        for v in range(0,segments[-1]):
-            Index=range(Idx_start,Idx_stop)
-            X_Idx=data[Index]
-            C=np.polyfit(Index,X_Idx,m)
-            fit=np.polyval(C,Index)
-            RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
-            Idx_start=Idx_stop+1
-            Idx_stop=Idx_stop+sum
-
-
-        for nq in range(0,len(q)):
-            qRMS[ns]=RMS[ns]**q[nq]
-            if q[nq]==0:
-                Fq[nq].append(np.exp(0.5*np.mean([l**2 for l in np.log(RMS[ns])])))
-            else:
-                Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
-
-
-    for nq in range(0,len(q)):
-        C=np.polyfit(np.log2(scale),np.log2(Fq[nq]),1)
-        Hq.append(C[0])
-        qRegLine.append(np.polyval(C,np.log2(scale)))
-
-
-    X=np.log2(scale)         
-    
-    plt.figure(3)
-    plt.xlabel('scale')
-    plt.ylabel('Fq')
-    for k in qindex:
-        plt.plot(X,np.log2(Fq[k]),"o",color="blue")
-        plt.plot(X,qRegLine[k],color="blue")
-
-    plt.xticks(X,np.linspace(16,1024,19))
-    #plt.yticks(,np.round(np.linspace(-1,32,20)))
-    plt.legend()
-
-    Hq = [x+Adjustment for x in Hq]
-
-    tq=Hq*q-1
-
-    plt.figure(4)
-    plt.xlabel('q-order')
-    plt.ylabel('tq')
-    plt.plot(q,tq,color="blue")
-
-    hq=np.diff(tq)/(q[1]-q[0])
-    Dq=(q[0:-1]*hq)-tq[0:-1]
-
-    plt.figure(5)
-    plt.xlabel('q-order')
-    plt.ylabel('Dq')
-    plt.plot(q[0:-1],Dq,color="blue")
-
-    plt.figure(6)
-    plt.xlabel('hq')
-    plt.ylabel('Dq')
-    plt.plot(hq,Dq,color="blue")
-
-    plt.show()
-
-    return  Hq,tq,hq,Dq,Fq
-
-
 def DFA(data,scale,m):
     #plot the data
     plt.figure(figsize=(6,3))
@@ -182,13 +95,132 @@ def DFA(data,scale,m):
     plt.xticks(X,np.linspace(16,1024,19))
     plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
     plt.legend()
-    plt.show()
     
     return H
+
+def MFDFA(data,scale,q,m,qindex,Adjustment):
+    #probar con los arrays de numpy
+    data=np.cumsum(data-np.mean(data))
+
+
+
+    segments=[]
+    RMS=[]
+    qRMS=[]
+    Fq=[]
+    Hq=[]
+    qRegLine=[]
+
+    print(scale)
+
+    for i in range(0,len(q)):
+        Fq.append([])
+
+
+    for ns in range(0,len(scale)):
+        segments.append(math.floor(len(data)/scale[ns]))
+        RMS.append([])
+        Idx_start=0
+        sum=int(scale[ns])
+        Idx_stop=sum-1
+        qRMS.append([])
+        for v in range(0,segments[-1]):
+            Index=range(Idx_start,Idx_stop)
+            X_Idx=data[Index]
+            C=np.polyfit(Index,X_Idx,m)
+            fit=np.polyval(C,Index)
+            RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
+            Idx_start=Idx_stop+1
+            Idx_stop=Idx_stop+sum
+
+
+        for nq in range(0,len(q)):
+            qRMS[ns]=RMS[ns]**q[nq]
+            if q[nq]==0:
+                #Fq[nq].append(np.exp(0.5*np.mean([l**2 for l in np.log(RMS[ns])])))
+                i=nq
+            else:
+                Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
+
+        sumaFq=[]
+        for j in range(0,len(Fq[i-1])):
+            sumaFq.append(Fq[i-1][j]+Fq[i+1][j])
+
+
+        Fq[i]=[x/2 for x in sumaFq]
+    
+    print(Fq)
+    print(scale)
+    plt.figure(3)
+    plt.xlabel('scale')
+    plt.ylabel('Fq')
+    plt.plot(np.log2(scale),np.log2(Fq[100]),color="blue")
+
+    for nq in range(0,len(q)):
+
+        C=np.polyfit(np.log2(scale),np.log2(Fq[nq]),1)
+        Hq.append(C[0])
+        qRegLine.append(np.polyval(C,np.log2(scale)))
+
+
+    X=np.log2(scale)         
+    
+    plt.figure(4)
+    plt.xlabel('scale')
+    plt.ylabel('Fq')
+    for k in qindex:
+        plt.plot(X,np.log2(Fq[k]),"o",color="blue")
+        plt.plot(X,qRegLine[k],color="blue")
+
+    plt.xticks(X,np.linspace(16,1024,19))
+    #plt.yticks(,np.round(np.linspace(-1,32,20)))
+    plt.legend()
+
+    tq=Hq*q-1
+
+    plt.figure(5)
+    plt.xlabel('q-order')
+    plt.ylabel('tq')
+    plt.plot(q,tq,color="blue")
+
+    hq=np.diff(tq)/(q[1]-q[0])
+    Dq=(q[0:-1]*hq)-tq[0:-1]
+
+    plt.figure(6)
+    plt.xlabel('q-order')
+    plt.ylabel('Dq')
+    plt.plot(q[0:-1],Dq,color="blue")
+
+    plt.figure(7)
+    plt.xlabel('hq')
+    plt.ylabel('Dq')
+    plt.plot(hq,Dq,color="blue")
+
+    plt.figure(8)
+    plt.xlabel('q-order')
+    plt.ylabel('Hq')
+    plt.plot(q,Hq,color="blue")
+
+
+    return  Hq,tq,hq,Dq,Fq
 
 
 def start_MFDFA(data,m,scale,q,q_index):
     H=DFA(data,scale,m)
+
+    Adjustment=0
+    if H<0.2:
+        Adjustment-=1
+    else:
+        if H>1.2 and H<1.8:
+            Adjustment+=1
+        else:
+            if H>1.8:
+                Adjustment+=2
+
+    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment)
+    plt.show()
+    return Hq,tq,hq,Dq,Fq
 
 
 class Application():
