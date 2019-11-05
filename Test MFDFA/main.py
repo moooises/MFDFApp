@@ -321,7 +321,7 @@ if __name__ == "__main__":
             elif row[3]=="branch-misses":
                 branchesmiss.append(float(row[1]))
 
-    H=DFA(cpumig)
+    H=DFA(branches)
 
     print(H)
 

@@ -37,6 +37,160 @@ def index(q):
 
     return qindex
 
+def MFDFA1(data,scale,q,m,qindex,Adjustment):
+    #probar con los arrays de numpy
+    data=np.cumsum(data-np.mean(data))
+
+
+    segments=[]
+    RMS=[]
+    qRMS=[]
+    Fq=[]
+    Hq=[]
+    qRegLine=[]
+
+    for i in range(0,len(q)):
+        Fq.append([])
+
+
+    for ns in range(0,len(scale)):
+        segments.append(math.floor(len(data)/scale[ns]))
+        RMS.append([])
+        Idx_start=0
+        sum=int(scale[ns])
+        Idx_stop=sum-1
+        qRMS.append([])
+        for v in range(0,segments[-1]):
+            Index=range(Idx_start,Idx_stop)
+            X_Idx=data[Index]
+            C=np.polyfit(Index,X_Idx,m)
+            fit=np.polyval(C,Index)
+            RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
+            Idx_start=Idx_stop+1
+            Idx_stop=Idx_stop+sum
+
+
+        for nq in range(0,len(q)):
+            qRMS[ns]=RMS[ns]**q[nq]
+            if q[nq]==0:
+                Fq[nq].append(np.exp(0.5*np.mean([l**2 for l in np.log(RMS[ns])])))
+            else:
+                Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
+
+
+    for nq in range(0,len(q)):
+        C=np.polyfit(np.log2(scale),np.log2(Fq[nq]),1)
+        Hq.append(C[0])
+        qRegLine.append(np.polyval(C,np.log2(scale)))
+
+
+    X=np.log2(scale)         
+    
+    plt.figure(3)
+    plt.xlabel('scale')
+    plt.ylabel('Fq')
+    for k in qindex:
+        plt.plot(X,np.log2(Fq[k]),"o",color="blue")
+        plt.plot(X,qRegLine[k],color="blue")
+
+    plt.xticks(X,np.linspace(16,1024,19))
+    #plt.yticks(,np.round(np.linspace(-1,32,20)))
+    plt.legend()
+
+    Hq = [x+Adjustment for x in Hq]
+
+    tq=Hq*q-1
+
+    plt.figure(4)
+    plt.xlabel('q-order')
+    plt.ylabel('tq')
+    plt.plot(q,tq,color="blue")
+
+    hq=np.diff(tq)/(q[1]-q[0])
+    Dq=(q[0:-1]*hq)-tq[0:-1]
+
+    plt.figure(5)
+    plt.xlabel('q-order')
+    plt.ylabel('Dq')
+    plt.plot(q[0:-1],Dq,color="blue")
+
+    plt.figure(6)
+    plt.xlabel('hq')
+    plt.ylabel('Dq')
+    plt.plot(hq,Dq,color="blue")
+
+    plt.show()
+
+    return  Hq,tq,hq,Dq,Fq
+
+
+def DFA(data,scale,m):
+    #plot the data
+    plt.figure(figsize=(6,3))
+    plt.figure(1)
+    plt.plot(data,label='time series')
+    plt.xlabel('time')
+    plt.ylabel('Amplitude')
+    plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
+    plt.legend()
+    #exponents=np.linspace(math.log2(16),math.log2(1024),19)
+    #scale=np.around(2**exponents,0)
+    #scale=[16,32,64,128,256,512,1024]
+
+    #m=1
+    segments=[]
+    F=[]
+    RMS=[]
+    #print(data)
+    data=np.cumsum(data-np.mean(data))
+    #print(data)
+
+    for ns in range(0,len(scale)):
+        segments.append(math.floor(len(data)/scale[ns]))
+        RMS.append([])
+        Idx_start=0
+        sum=int(scale[ns])
+        Idx_stop=sum
+        for v in range(0,segments[-1]):
+            Index=range(Idx_start,Idx_stop)
+            X_Idx=data[Index]
+            #print(Index)
+            #print(len(Index))
+            #print(X_Idx)
+            C=np.polyfit(Index,X_Idx,m)
+            #print(C)
+            #print()
+            fit=np.polyval(C,Index)
+            #0.036
+            RMS[ns].append(math.sqrt(np.mean((X_Idx-fit)**2)))
+            Idx_start=Idx_stop+1
+            Idx_stop=Idx_stop+sum
+        F.append(np.sqrt(np.mean([l**2 for l in RMS[ns]])))
+        
+        
+
+    X=np.log2(scale)
+    Ch=np.polyfit(X,np.log2(F),1)
+    H=Ch[0]
+    RegLine=np.polyval(Ch,X)
+
+    plt.figure(2)
+    plt.xlabel('Scale')
+    plt.ylabel('Overall RMS')
+    plt.plot(X,RegLine,"b-",label='Multifractal time series')
+    plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
+    plt.xticks(X,np.linspace(16,1024,19))
+    plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
+    plt.legend()
+    plt.show()
+    
+    return H
+
+
+def start_MFDFA(data,m,scale,q,q_index):
+    H=DFA(data,scale,m)
+
+
 class Application():
 
 
@@ -65,7 +219,7 @@ class Application():
             self.info_text.insert(END,'m:\n\nThis is the order of the polinominal trend used to calculate the local          fluctuations RMS, the bigger it is the more complex will be its shape. An order of 2 or 3 is more than enough, but I allow up to 10 if you want to experiment.\n\n')
             self.info_text.insert(END,'q:\n\nDecide the q-order weighing of the local fluctuations RMS.\nIt should consist on both positive and negative q to weight the period of small and big fluctuations in the time series\n')
             self.info_text.insert(END,'It is recommended to avoid large number because they inflict more numerical     errors in the tails of the multifractal spectrum. For biomedical data -5 and 5  are recommended.')
-            self.info_text.insert(END,'\n\nThe application is prepared to only read .csv files, you can indicate the       separtor of the .csv in its field, by default is | . ')
+            #self.info_text.insert(END,'\n\nThe application is prepared to only read .csv files, you can indicate the       separtor of the .csv in its field, by default is | . ')
             self.info_text.insert(END,'\n\nThe Noise Structure check button must be checked if your data has a noise like  structure, because in that case your data must be preprocesed to work with this algorithm.')
             self.info_text.configure(state=DISABLED)
             self.info_text.pack(side=TOP,fill=BOTH,expand=1)
@@ -108,25 +262,25 @@ class Application():
         self.result_text.insert(END,output)
 
     def open_file(self):
-        file=askopenfilename()
-        if file is not None and file.endswith('.csv'):            
-            self.path_time=file
-            print(self.path_time)
-        else:
-            self.write_text("Warning: This app only support .csv files")
+        #file=askopenfilename()
+        #if file is not None:            
+        #    self.path_time=file
+        #    print(self.path_time)
+        #else:
+        #    self.write_text("Time file not selected")
 
         file=askopenfilename()
-        if file is not None and file.endswith('.csv'):            
+        if file is not None:            
             self.path=file
             print(self.path)
         else:
-            self.path_time=""
-            self.write_text("Warning: This app only support .csv files")#write on text widget
+            #self.path_time=""
+            self.write_text("Data file not selected")
 
 
 
 
-    def prepare_MFDFA(self,path_file,path_file_time,scale_min,scale_max,scale_res,q_min,q_max,m,separator,checkbutton):
+    def prepare_MFDFA(self,path_file,scale_min,scale_max,scale_res,q_min,q_max,m,separator,checkbutton):
         aux=""
         if len(q_min)>2:
             if q_min[0]=='-':
@@ -188,26 +342,29 @@ class Application():
         if separator=='':
             separator='|'
 
-        csv.field_size_limit(sys.maxsize)
-        with open(path_file_time) as file:
-            reader_time=csv.reader(file,delimiter=separator)
-            time=list(reader_time)#arreglar esto
+        #csv.field_size_limit(sys.maxsize)
+        #with open(path_file_time) as file:
+            #reader_time=csv.reader(file,delimiter=separator)
+            #time=list(reader_time)#arreglar esto
+            #time_r=list(file.read().splitlines())
 
         with open(path_file) as file:
-            reader=csv.reader(file,delimiter=separator)
-            data=list(reader)
+            #reader=csv.reader(file,delimiter=separator)
+            #data=list(reader)
+            data_r=list(file.read().splitlines())
+
+        data=[]
+        #time=[]
+        #print(data_r[0])
+        #print(time_r[0])
+ 
+        data=list(map(float,data_r))
+        #time=list(map(float,time_r))
 
         q_index=index(q)
-        print(q_index)
+        #print(q_index)
         
-
-        print(m)
-        print(scale)
-        print(q)
-        print(time[0][0])
-        print()
-        print(data[0][0])
-        #Hq,tq,hq,Dq,Fq=start_MFDFA(reader)
+        Hq,tq,hq,Dq,Fq=start_MFDFA(data,m,scale,q,q_index)
 
 
 
@@ -231,31 +388,25 @@ class Application():
             output=output+"q max value in q not given\n"
 
         path_file=self.path
-        path_file_time=self.path_time
-        if path_file_time=="":
-            output=output+"No data file selected\n"
-        else:
-            if path_file[-4:]!=".csv":
-                output=output+"The file selected is not a .csv file\n"
+        #path_file_time=self.path_time
+        #if path_file_time=="":
+            #output=output+"No data file selected\n"
 
         if path_file=="":
             output=output+"No data file selected\n"
-        else:
-            if path_file[-4:]!=".csv":
-                output=output+"The file selected is not a .csv file\n"
 
         separator=self.separator_entry.get()
         m=self.m_spinbox.get()
         if output!="":
             self.write_text(output)
         else:
-            self.prepare_MFDFA(path_file,path_file_time,scale_min,scale_max,scale_res,q_min,q_max,m,separator,self.checkbutton)
+            self.prepare_MFDFA(path_file,scale_min,scale_max,scale_res,q_min,q_max,m,separator,self.checkbutton)
 
 
 
     def __init__(self):
         self.path=""
-        self.path_time=""
+        #self.path_time=""
 
         self.raiz=Tk()
         self.info_active=False
@@ -354,7 +505,7 @@ class Application():
         self.raiz.grid_rowconfigure(12, minsize=50)
         self.raiz.grid_rowconfigure(15, minsize=50)
 
-        self.write_text("First select the time file and then select the data file")
+        #self.write_text("First select the time file and then select the data file")
 
 
         self.raiz.mainloop()

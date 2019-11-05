@@ -1,6 +1,8 @@
 from tkinter.filedialog import askopenfilename
 import csv
 import os
+import shutil
+import pickle
 
 #n=input("Select the number of parameters:")
 n=8
@@ -27,12 +29,12 @@ if file is not None and file.endswith('.csv'):
                 i=0
                 name=False
             if i==0:
-                time.append(float(row[0]))
+                time.append(row[0])
 
             if i!=0:#Esto por el tema de cpu-clock a float
                 if name:
                     names.append(row[3])
-                data[i].append(float(row[1]))
+                data[i].append(row[1])
             i=i+1
 
     #create the individuals files
@@ -47,13 +49,25 @@ if file is not None and file.endswith('.csv'):
     print(len(names))
     print(len(data))
 
-    os.mkdir("Data_csv")
+    print(type(names))
+    print(type(data))
 
-    for n in range(0,len(names)): 
-        with open("Data_csv/"+name+"_"+names[n]+".csv","w+") as f:
-            f.write(str(data[n+1]))
-    with open("Data_csv/"+name+"_time.csv",'w+') as f:
-        f.write(str(time))
+    #print(data)
+    shutil.rmtree("Data")
+    os.mkdir("Data")
+
+    for n in range(0,len(names)):
+        with open("Data/"+name+"_"+names[n]+".dat","w+") as f:
+            for i in range(0,len(data[n+1])):
+                f.write(data[n+1][i])
+                f.write('\n')
+
+    with open("Data/"+name+"_time.dat",'w+') as f:
+        for i in range(0,len(time)):
+            f.write(time[i])
+            f.write('\n')
+
+
 
 else:
     print("Warning: This app only support .csv files")#write on text widget
