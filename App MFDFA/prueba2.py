@@ -35,17 +35,37 @@ def index(q):
         
         j=j+1
 
-    return qindex
+    i=0
+    q_index=[]
+    while i<len(qindex):
+        if i%2!=0:
+            q_index.append(qindex[i])
+        i=i+1
 
-def DFA(data,scale,m):
+    return q_index
+
+def DFA(data,scale,m,figure):
     #plot the data
-    plt.figure(figsize=(6,3))
-    plt.figure(1)
-    plt.plot(data,label='time series')
-    plt.xlabel('time')
-    plt.ylabel('Amplitude')
-    plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
-    plt.legend()
+    #plt.figure(figsize=(6,3))
+    if figure:
+        plt.subplot(4,2,1)
+        plt.plot(data,label='time series')
+        plt.xlabel('time')
+        plt.ylabel('Amplitude')
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Time serie")
+        plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
+        plt.legend()
+    else:
+        plt.figure(1)
+        plt.plot(data,label='time series')
+        plt.xlabel('time')
+        plt.ylabel('Amplitude')
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Time serie")
+        plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
+        plt.legend()
+
     #exponents=np.linspace(math.log2(16),math.log2(1024),19)
     #scale=np.around(2**exponents,0)
     #scale=[16,32,64,128,256,512,1024]
@@ -87,18 +107,32 @@ def DFA(data,scale,m):
     H=Ch[0]
     RegLine=np.polyval(Ch,X)
 
-    plt.figure(2)
-    plt.xlabel('Scale')
-    plt.ylabel('Overall RMS')
-    plt.plot(X,RegLine,"b-",label='Multifractal time series')
-    plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
-    plt.xticks(X,np.linspace(16,1024,19))
-    plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
-    plt.legend()
+    if figure:
+        plt.subplot(4,2,2)
+        plt.xlabel('Scale')
+        plt.ylabel('Overall RMS')
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Overall RMS")
+        plt.plot(X,RegLine,"b-",label='Multifractal time series')
+        plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
+        plt.xticks(X,np.linspace(16,1024,19))
+        plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
+        plt.legend()
+    else:
+        plt.figure(2)
+        plt.xlabel('Scale')
+        plt.ylabel('Overall RMS')
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Overall RMS")
+        plt.plot(X,RegLine,"b-",label='Multifractal time series')
+        plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
+        plt.xticks(X,np.linspace(16,1024,19))
+        plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
+        plt.legend()
     
     return H
 
-def MFDFA(data,scale,q,m,qindex,Adjustment):
+def MFDFA(data,scale,q,m,qindex,Adjustment,figure):
     #probar con los arrays de numpy
     data=np.cumsum(data-np.mean(data))
 
@@ -149,12 +183,13 @@ def MFDFA(data,scale,q,m,qindex,Adjustment):
 
         Fq[i]=[x/2 for x in sumaFq]
     
-    print(Fq)
-    print(scale)
-    plt.figure(3)
-    plt.xlabel('scale')
-    plt.ylabel('Fq')
-    plt.plot(np.log2(scale),np.log2(Fq[100]),color="blue")
+    #print(Fq)
+    #print(scale)
+    #print(Fq[100])
+    #plt.subplot(4,2,3)
+    #plt.xlabel('scale')
+    #plt.ylabel('Fq')
+    #plt.plot(np.log2(scale),np.log2(Fq[100]),color="blue")
 
     for nq in range(0,len(q)):
 
@@ -164,49 +199,108 @@ def MFDFA(data,scale,q,m,qindex,Adjustment):
 
 
     X=np.log2(scale)         
-    
-    plt.figure(4)
-    plt.xlabel('scale')
-    plt.ylabel('Fq')
-    for k in qindex:
-        plt.plot(X,np.log2(Fq[k]),"o",color="blue")
-        plt.plot(X,qRegLine[k],color="blue")
+    if figure:
+        plt.subplot(4,2,4)
+        plt.xlabel('scale')
+        plt.ylabel('Fq')
+        for k in qindex:
+            plt.plot(X,np.log2(Fq[k]),"o",color="blue")
+            plt.plot(X,qRegLine[k],color="blue")
 
-    plt.xticks(X,np.linspace(16,1024,19))
-    #plt.yticks(,np.round(np.linspace(-1,32,20)))
-    plt.legend()
+        plt.xticks(X,np.linspace(16,1024,19))
+        #plt.yticks(,np.round(np.linspace(-1,32,20)))
+        plt.legend()
+    else:
+        plt.figure(4)
+        plt.xlabel('scale')
+        plt.ylabel('Fq')
+        for k in qindex:
+            plt.plot(X,np.log2(Fq[k]),"o",color="blue")
+            plt.plot(X,qRegLine[k],color="blue")
+
+        plt.xticks(X,np.linspace(16,1024,19))
+        #plt.yticks(,np.round(np.linspace(-1,32,20)))
+        plt.legend()   
+
 
     tq=Hq*q-1
 
-    plt.figure(5)
-    plt.xlabel('q-order')
-    plt.ylabel('tq')
-    plt.plot(q,tq,color="blue")
+    if figure:
+        plt.subplot(4,2,7)
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Max Exponent tq")
+        plt.xlabel('q-order')
+        plt.ylabel('tq')
+        plt.plot(q,tq,color="blue")
+    else:
+        plt.figure(7)
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Max Exponent tq")
+        plt.xlabel('q-order')
+        plt.ylabel('tq')
+        plt.plot(q,tq,color="blue")   
 
     hq=np.diff(tq)/(q[1]-q[0])
     Dq=(q[0:-1]*hq)-tq[0:-1]
 
-    plt.figure(6)
-    plt.xlabel('q-order')
-    plt.ylabel('Dq')
-    plt.plot(q[0:-1],Dq,color="blue")
+    if figure:
 
-    plt.figure(7)
-    plt.xlabel('hq')
-    plt.ylabel('Dq')
-    plt.plot(hq,Dq,color="blue")
+        plt.subplot(4,2,5)
+        plt.xlabel('q-order')
+        plt.ylabel('hq')
+        plt.plot(q[0:-1],hq,color="blue")
 
-    plt.figure(8)
-    plt.xlabel('q-order')
-    plt.ylabel('Hq')
-    plt.plot(q,Hq,color="blue")
+        plt.subplot(4,2,6)
+        plt.xlabel('q-order')
+        plt.ylabel('Dq')
+        plt.plot(q[0:-1],Dq,color="blue")
+
+        plt.subplot(4,2,8)
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Multifractal spectrum of Dq and hq")
+        plt.xlabel('hq')
+        plt.ylabel('Dq')
+        plt.plot(hq,Dq,color="blue")
+
+        plt.subplot(4,2,3)
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Hurst exponent in each q-order",)
+        plt.xlabel('q-order')
+        plt.ylabel('Hq')
+        plt.plot(q,Hq,color="blue")
+    else:
+
+        plt.figure(5)
+        plt.xlabel('q-order')
+        plt.ylabel('hq')
+        plt.plot(q[0:-1],hq,color="blue")
+
+        plt.figure(6)
+        plt.xlabel('q-order')
+        plt.ylabel('Dq')
+        plt.plot(q[0:-1],Dq,color="blue")
+
+        plt.figure(8)
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Multifractal spectrum of Dq and hq")
+        plt.xlabel('hq')
+        plt.ylabel('Dq')
+        plt.plot(hq,Dq,color="blue")
+
+        plt.figure(3)
+        plt.rcParams["axes.titlesize"] = 8
+        plt.title("Hurst exponent in each q-order",)
+        plt.xlabel('q-order')
+        plt.ylabel('Hq')
+        plt.plot(q,Hq,color="blue")
 
 
     return  Hq,tq,hq,Dq,Fq
 
 
-def start_MFDFA(data,m,scale,q,q_index):
-    H=DFA(data,scale,m)
+def start_MFDFA(data,m,scale,q,q_index,figure):
+    print(figure)
+    H=DFA(data,scale,m,figure)
 
     Adjustment=0
     if H<0.2:
@@ -218,7 +312,9 @@ def start_MFDFA(data,m,scale,q,q_index):
             if H>1.8:
                 Adjustment+=2
 
-    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment)
+    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment,figure)
+    if figure:
+        plt.subplots_adjust(wspace=0.3,hspace=0.7)
     plt.show()
     return Hq,tq,hq,Dq,Fq
 
@@ -312,7 +408,7 @@ class Application():
 
 
 
-    def prepare_MFDFA(self,path_file,scale_min,scale_max,scale_res,q_min,q_max,m,separator,checkbutton):
+    def prepare_MFDFA(self,path_file,scale_min,scale_max,scale_res,q_min,q_max,m,checkbutton,figure):
         aux=""
         if len(q_min)>2:
             if q_min[0]=='-':
@@ -371,8 +467,7 @@ class Application():
         exponents=np.linspace(math.log2(int(scale_min)),math.log2(int(scale_max)),int(scale_res))
         scale=np.around(2**exponents,0)
         q=np.linspace(float(q_min),float(q_max),cant)
-        if separator=='':
-            separator='|'
+
 
         #csv.field_size_limit(sys.maxsize)
         #with open(path_file_time) as file:
@@ -394,10 +489,16 @@ class Application():
         #time=list(map(float,time_r))
 
         q_index=index(q)
-        #print(q_index)
+        print(q)
+        print(q_index)
         
-        Hq,tq,hq,Dq,Fq=start_MFDFA(data,m,scale,q,q_index)
+        Hq,tq,hq,Dq,Fq=start_MFDFA(data,m,scale,q,q_index,figure)
 
+        #self.write_text("Hq: "+str(Hq)+"\n")
+        #self.write_text("tq: "+str(tq)+"\n")
+        #self.write_text("hq: "+str(hq)+"\n")
+        #self.write_text("Dq: "+str(Dq)+"\n")
+        #self.write_text("Fq: "+str(Fq)+"\n")
 
 
 
@@ -427,12 +528,13 @@ class Application():
         if path_file=="":
             output=output+"No data file selected\n"
 
-        separator=self.separator_entry.get()
+        #separator=self.separator_entry.get()
         m=self.m_spinbox.get()
+        f=self.figure.get()
         if output!="":
             self.write_text(output)
         else:
-            self.prepare_MFDFA(path_file,scale_min,scale_max,scale_res,q_min,q_max,m,separator,self.checkbutton)
+            self.prepare_MFDFA(path_file,scale_min,scale_max,scale_res,q_min,q_max,m,self.checkbutton.get(),self.figure.get())
 
 
 
@@ -444,6 +546,9 @@ class Application():
         self.info_active=False
         self.about_active=False
         self.checkbutton=StringVar()
+        self.checkbutton.set("1")
+        self.figure=StringVar()
+        self.figure.set("1")
 
         self.raiz.grab_set()
         #self.raiz.geometry('300x200')
@@ -513,19 +618,23 @@ class Application():
         self.file_button.grid(row=15, column=0,sticky=E)
 
         #Separtator
-        self.separator_label=Label(text='        CSV Separator',bg='white')
-        self.separator_label.grid(row=15,column=1,sticky=W)
-        self.separator_entry=Entry(self.raiz,bg='white',width=1)
-        self.separator_entry.grid(row=15,column=1)
+        #self.separator_label=Label(text='        CSV Separator',bg='white')
+        #self.separator_label.grid(row=15,column=1,sticky=W)
+        #self.separator_entry=Entry(self.raiz,bg='white',width=1)
+        #self.separator_entry.grid(row=15,column=1)
+
+        #One figure in all<
+        self.figure_checkbutton=Checkbutton(self.raiz,text='One figure',onvalue=1,offvalue=0,variable=self.figure)
+        self.figure_checkbutton.grid(row=15,column=2,sticky=W)
 
         #Noise like
      
         self.noise_checkbutton=Checkbutton(self.raiz,text='Noise structure',onvalue=1,offvalue=0,variable=self.checkbutton)
-        self.noise_checkbutton.grid(row=15,column=1, sticky=E)
+        self.noise_checkbutton.grid(row=15,column=1)
 
         #Procesar
-        self.start_button=Button(self.raiz, text='Start', command=self.start)
-        self.start_button.grid(row=15, column=2)
+        self.start_button=Button(self.raiz, text='Start', command=self.start,height = 1, width = 5)
+        self.start_button.grid(row=15, column=2,sticky=E)
 
         #ttk.Button(self.raiz, text='Salir', command=self.raiz.destroy).grid(row=15,column=0)
         #self.tinfo=Text(self.raiz)
@@ -539,6 +648,14 @@ class Application():
 
         #self.write_text("First select the time file and then select the data file")
 
+        self.write_text("Hq: Slope of the overall RMS(Hurst exponent)\n")
+        self.write_text("q: Order-q values\n")
+        self.write_text("tq: q-order mass exponent\n")
+        self.write_text("hq: q-order singularity exponent (Tangent slope of tq\n")
+        self.write_text("Dq: q-order singularity dimension\n")
+        self.write_text("Fq: q-order overall RMS\n")
+        self.write_text("F: Overall RMS\n")
+        self.write_text("--------------------------------------------------------------------------------\n")
 
         self.raiz.mainloop()
 
