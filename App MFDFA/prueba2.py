@@ -44,39 +44,72 @@ def index(q):
 
     return q_index
 
-def DFA(data,scale,m,figure):
+def DFA(data,scale,m,noise,figure):
     #plot the data
     #plt.figure(figsize=(6,3))
-    if figure:
-        plt.subplot(4,2,1)
-        plt.plot(data,label='time series')
-        plt.xlabel('time')
-        plt.ylabel('Amplitude')
-        plt.rcParams["axes.titlesize"] = 8
-        plt.title("Time serie")
-        plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
-        plt.legend()
-    else:
-        plt.figure(1)
-        plt.plot(data,label='time series')
-        plt.xlabel('time')
-        plt.ylabel('Amplitude')
-        plt.rcParams["axes.titlesize"] = 8
-        plt.title("Time serie")
-        plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
-        plt.legend()
-
-    #exponents=np.linspace(math.log2(16),math.log2(1024),19)
-    #scale=np.around(2**exponents,0)
-    #scale=[16,32,64,128,256,512,1024]
 
     #m=1
     segments=[]
     F=[]
     RMS=[]
     #print(data)
-    data=np.cumsum(data-np.mean(data))
-    #print(data)
+
+
+    if noise=="1":
+        print("Tiene estructura ruido")
+    else:
+        print("NO")
+
+    if figure=="1":
+        print("Subplot")
+    else:
+        print("Muchas figuras")
+
+    if figure=="1":
+        if noise=="1":
+            plt.subplot(4,2,1)
+            plt.plot(data,label='time series')
+            plt.xlabel('time')
+            plt.ylabel('Amplitude')
+            plt.rcParams["axes.titlesize"] = 8
+            plt.title("Time serie")
+            data=np.cumsum(data-np.mean(data))
+            plt.plot(data,label='Random Walk')
+            plt.legend()
+        else:
+            plt.subplot(4,2,1)
+            plt.plot(data,label='time series')
+            plt.xlabel('time')
+            plt.ylabel('Amplitude')
+            plt.rcParams["axes.titlesize"] = 8
+            plt.title("Time serie")
+            plt.legend()
+    else:
+        if noise=="1":
+            plt.figure(1)
+            plt.plot(data,label='time series')
+            plt.xlabel('time')
+            plt.ylabel('Amplitude')
+            plt.rcParams["axes.titlesize"] = 8
+            plt.title("Time serie")
+            data=np.cumsum(data-np.mean(data))
+            plt.plot(data,label='Random Walk')
+            plt.legend()
+        else:
+            plt.figure(1)
+            plt.plot(data,label='time series')
+            plt.xlabel('time')
+            plt.ylabel('Amplitude')
+            plt.rcParams["axes.titlesize"] = 8
+            plt.title("Time serie")
+            plt.legend()
+
+
+    #exponents=np.linspace(math.log2(16),math.log2(1024),19)
+    #scale=np.around(2**exponents,0)
+    #scale=[16,32,64,128,256,512,1024]
+
+
 
     for ns in range(0,len(scale)):
         segments.append(math.floor(len(data)/scale[ns]))
@@ -107,7 +140,12 @@ def DFA(data,scale,m,figure):
     H=Ch[0]
     RegLine=np.polyval(Ch,X)
 
-    if figure:
+    if figure=="1":
+        print("Subplot")
+    else:
+        print("Muchas figuras")
+
+    if figure=="1":
         plt.subplot(4,2,2)
         plt.xlabel('Scale')
         plt.ylabel('Overall RMS')
@@ -132,9 +170,10 @@ def DFA(data,scale,m,figure):
     
     return H
 
-def MFDFA(data,scale,q,m,qindex,Adjustment,figure):
+def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure):
     #probar con los arrays de numpy
-    data=np.cumsum(data-np.mean(data))
+    if noise=="1":
+        data=np.cumsum(data-np.mean(data))
 
 
 
@@ -198,8 +237,9 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,figure):
         qRegLine.append(np.polyval(C,np.log2(scale)))
 
 
-    X=np.log2(scale)         
-    if figure:
+    X=np.log2(scale)
+             
+    if figure=="1":
         plt.subplot(4,2,4)
         plt.xlabel('scale')
         plt.ylabel('Fq')
@@ -225,7 +265,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,figure):
 
     tq=Hq*q-1
 
-    if figure:
+    if figure=="1":
         plt.subplot(4,2,7)
         plt.rcParams["axes.titlesize"] = 8
         plt.title("Max Exponent tq")
@@ -243,7 +283,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,figure):
     hq=np.diff(tq)/(q[1]-q[0])
     Dq=(q[0:-1]*hq)-tq[0:-1]
 
-    if figure:
+    if figure=="1":
 
         plt.subplot(4,2,5)
         plt.xlabel('q-order')
@@ -298,9 +338,8 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,figure):
     return  Hq,tq,hq,Dq,Fq
 
 
-def start_MFDFA(data,m,scale,q,q_index,figure):
-    print(figure)
-    H=DFA(data,scale,m,figure)
+def start_MFDFA(data,m,scale,q,q_index,noise,figure):
+    H=DFA(data,scale,m,noise,figure)
 
     Adjustment=0
     if H<0.2:
@@ -312,7 +351,7 @@ def start_MFDFA(data,m,scale,q,q_index,figure):
             if H>1.8:
                 Adjustment+=2
 
-    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment,figure)
+    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment,noise,figure)
     if figure:
         plt.subplots_adjust(wspace=0.3,hspace=0.7)
     plt.show()
@@ -408,7 +447,7 @@ class Application():
 
 
 
-    def prepare_MFDFA(self,path_file,scale_min,scale_max,scale_res,q_min,q_max,m,checkbutton,figure):
+    def prepare_MFDFA(self,path_file,scale_min,scale_max,scale_res,q_min,q_max,m,noise,figure):
         aux=""
         if len(q_min)>2:
             if q_min[0]=='-':
@@ -492,7 +531,7 @@ class Application():
         print(q)
         print(q_index)
         
-        Hq,tq,hq,Dq,Fq=start_MFDFA(data,m,scale,q,q_index,figure)
+        Hq,tq,hq,Dq,Fq=start_MFDFA(data,m,scale,q,q_index,noise,figure)
 
         #self.write_text("Hq: "+str(Hq)+"\n")
         #self.write_text("tq: "+str(tq)+"\n")
@@ -534,7 +573,7 @@ class Application():
         if output!="":
             self.write_text(output)
         else:
-            self.prepare_MFDFA(path_file,scale_min,scale_max,scale_res,q_min,q_max,m,self.checkbutton.get(),self.figure.get())
+            self.prepare_MFDFA(path_file,scale_min,scale_max,scale_res,q_min,q_max,m,self.noise.get(),self.figure.get())
 
 
 
@@ -545,8 +584,8 @@ class Application():
         self.raiz=Tk()
         self.info_active=False
         self.about_active=False
-        self.checkbutton=StringVar()
-        self.checkbutton.set("1")
+        self.noise=StringVar()
+        self.noise.set("1")
         self.figure=StringVar()
         self.figure.set("1")
 
@@ -629,7 +668,7 @@ class Application():
 
         #Noise like
      
-        self.noise_checkbutton=Checkbutton(self.raiz,text='Noise structure',onvalue=1,offvalue=0,variable=self.checkbutton)
+        self.noise_checkbutton=Checkbutton(self.raiz,text='Noise structure',onvalue=1,offvalue=0,variable=self.noise)
         self.noise_checkbutton.grid(row=15,column=1)
 
         #Procesar
