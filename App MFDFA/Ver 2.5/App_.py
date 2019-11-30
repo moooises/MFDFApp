@@ -10,38 +10,20 @@ import math
 import csv
 import sys
 
-def index(q):
-    q=np.around(q,1)
-    aux=np.around(q[0],0)
-    aux=int(aux)
-    if aux<0:
-        aux=aux+1
-        auxm=(-1*aux)+1
-    print(aux)
-    print(auxm)
-    div=list(range(aux,auxm))
-    print(div)
-    i=0
-    j=0
-    qindex=[]
-    print(len(q))
-    while j<len(q) and i<len(div):
-        if div[i]!=0 and q[j]/div[i]==1:
-            i=i+1
-            qindex.append(j)
-        else:
-            if q[j]==0:
-                i=i+1
-                qindex.append(j)
-        
-        j=j+1
+plt.switch_backend('TkAgg')
+colours=["blue","green","red","cyan","magenta","yellow","black"]
 
+def index(q):
     i=0
-    q_index=[]
-    while i<len(qindex):
-        if i%2!=0:
-            q_index.append(qindex[i])
+    while round(q[i])!=0:
         i=i+1
+
+    ind=i
+
+    q_index=[]
+
+    for j in range(1,5): ##Change this value(4) to get more q plots
+        q_index.append(j*4)
 
     return q_index
 
@@ -154,7 +136,8 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res):
         plt.title("Overall RMS")
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
-        plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
+        #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
+        plt.xticks(X,scale)##Esta es nuestra autentica escala
         plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
         plt.legend()
     else:
@@ -165,13 +148,16 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res):
         plt.title("Overall RMS")
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
-        plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))#####
+        #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))#####
+        plt.xticks(X,scale)##Esta es nuestra autentica escala
         plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
         plt.legend()
     
     return H
 
-def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scale_res):
+
+
+def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_res):
     #probar con los arrays de numpy
     if noise=="1":
         data=np.cumsum(data-np.mean(data))
@@ -211,6 +197,95 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         for nq in range(0,len(q)):
             qRMS[ns]=RMS[ns]**q[nq]
             if q[nq]==0:
+                i=nq
+            else:
+                Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
+
+        sumaFq=[]
+        for j in range(0,len(Fq[i-1])):
+            sumaFq.append(Fq[i-1][j]+Fq[i+1][j])
+
+
+        Fq[i]=[x/2 for x in sumaFq]
+    
+
+    for nq in range(0,len(q)):
+
+        C=np.polyfit(np.log2(scale),np.log2(Fq[nq]),1)
+        Hq.append(C[0])
+        qRegLine.append(np.polyval(C,np.log2(scale)))
+
+
+    X=np.log2(scale)
+
+    ##Para la seleccion
+
+    plt.figure(20)
+    plt.title("One section")
+    plt.xlabel('scale')
+    plt.ylabel('Fq')
+    i=0
+    for k in qindex:
+        plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
+        plt.plot(X,qRegLine[k],color=colours[i])
+        i=i+1
+    #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
+    plt.xticks(X,scale)
+    #plt.yticks(,np.round(np.linspace(-1,32,20)))
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
+    plt.ion()
+    plt.pause(0.001)
+    plt.show()
+
+    scale=np.delete(scale,0)
+    scale=np.delete(scale,len(scale)-1)
+    print(scale)    
+    scale_selector=Aux_Window("Scale Selector",scale_min,scale_max,scale)
+    s=scale_selector.ret_value_scale()
+    return int(s)
+
+def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scale_res,scale_limit):
+    #probar con los arrays de numpy
+    if noise=="1":
+        data=np.cumsum(data-np.mean(data))
+
+
+
+    segments=[]
+    RMS=[]
+    qRMS=[]
+    Fq=[]
+    Hq=[]
+    qRegLine1=[]
+    qRegLine2=[]
+
+
+
+    print(scale)
+
+    for i in range(0,len(q)):
+        Fq.append([])
+
+    for ns in range(0,len(scale)):
+        segments.append(math.floor(len(data)/scale[ns]))
+        RMS.append([])
+        Idx_start=0
+        sum=int(scale[ns])
+        Idx_stop=sum-1
+        qRMS.append([])
+        for v in range(0,segments[-1]):
+            Index=range(Idx_start,Idx_stop)
+            X_Idx=data[Index]
+            C=np.polyfit(Index,X_Idx,m)
+            fit=np.polyval(C,Index)
+            RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
+            Idx_start=Idx_stop+1
+            Idx_stop=Idx_stop+sum
+
+
+        for nq in range(0,len(q)):
+            qRMS[ns]=RMS[ns]**q[nq]
+            if q[nq]==0:
                 #Fq[nq].append(np.exp(0.5*np.mean([l**2 for l in np.log(RMS[ns])])))
                 i=nq
             else:
@@ -223,45 +298,73 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
 
         Fq[i]=[x/2 for x in sumaFq]
     
-    #print(Fq)
-    #print(scale)
-    #print(Fq[100])
-    #plt.subplot(4,2,3)
-    #plt.xlabel('scale')
-    #plt.ylabel('Fq')
-    #plt.plot(np.log2(scale),np.log2(Fq[100]),color="blue")
+    ###Prueba###
+    ind_np=np.where(scale==scale_limit)
 
+    ind=int(ind_np[0])
+
+    print(np.linspace(scale_min,scale_max,scale_res))
+    print(scale[ind])
+    print(scale[0:ind+1])
+    print(scale[ind+1:])
+
+    
     for nq in range(0,len(q)):
 
-        C=np.polyfit(np.log2(scale),np.log2(Fq[nq]),1)
-        Hq.append(C[0])
-        qRegLine.append(np.polyval(C,np.log2(scale)))
+        C=np.polyfit(np.log2(scale[0:ind+1]),np.log2(Fq[nq][0:ind+1]),1)
+        Hq1=C[0]
+        qRegLine1.append(np.polyval(C,np.log2(scale[0:ind+1])))
+
+        C=np.polyfit(np.log2(scale[ind+1:]),np.log2(Fq[nq][ind+1:]),1)
+        Hq2=C[0]
+        qRegLine2.append(np.polyval(C,np.log2(scale[ind+1:])))
+
+        Hq.append([])
+        #qRegLine.append([])
+
+        Hqaux=np.concatenate((Hq1,Hq2), axis=None)
+        for y in Hqaux:
+            Hq[nq].append(y)
+
+        #qRegLineaux=np.concatenate((qRegLine1,qRegLine2), axis=None)
+        #for x in qRegLi    neaux:
+            #qRegLine[nq].append(x)
+
+        #print(qRegLine[nq])
+ 
 
 
     X=np.log2(scale)
 
+    
+    i=0
     if figure=="1":
         plt.subplot(4,2,4)
         plt.xlabel('scale')
         plt.ylabel('Fq')
         for k in qindex:
-            plt.plot(X,np.log2(Fq[k]),"o",color="blue")
-            plt.plot(X,qRegLine[k],color="blue")
+            plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
+            plt.plot(X[0:ind+1],qRegLine1[k],color=colours[i])
+            plt.plot(X[ind+1:],qRegLine2[k],color=colours[i])
+            i=i+1
 
-        plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
+        #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
+        plt.xticks(X,scale)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
-        plt.legend()
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.30), shadow=True, ncol=4)   
     else:
         plt.figure(4)
         plt.xlabel('scale')
         plt.ylabel('Fq')
         for k in qindex:
-            plt.plot(X,np.log2(Fq[k]),"o",color="blue")
-            plt.plot(X,qRegLine[k],color="blue")
-
-        plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
+            plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
+            plt.plot(X[0:ind+1],qRegLine1[k],color=colours[i])
+            plt.plot(X[ind+1:],qRegLine2[k],color=colours[i])
+            i=i+1
+        #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
+        plt.xticks(X,scale)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
-        plt.legend()   
+        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
 
 
     tq=Hq*q-1
@@ -340,6 +443,10 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
 
 
 def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_res):
+    s=Select_Scale(data,scale,q,m,q_index,noise,figure,scale_min,scale_max,scale_res)
+
+    #print(s)
+    #print(r)
     H=DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res)
 
     Adjustment=0
@@ -352,7 +459,7 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
             if H>1.8:
                 Adjustment+=2
 
-    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res)
+    Hq,tq,hq,Dq,Fq=MFDFA(data,scale,q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,s)
     if figure:
         plt.subplots_adjust(wspace=0.3,hspace=0.7)
     plt.show(block=True)
@@ -367,11 +474,11 @@ class Application():
         aux=str(self.q_entry.get())
         #self.q_max_entry.configure(state='normal')
         self.q_max_entry.delete(0,END)
-        self.q_max_entry.insert(0,aux)
+        self.q_max_entry.insert(0,int(aux))
         #self.q_max_entry.configure(state='readonly')
         #self.q_min_entry.configure(state='normal')
         self.q_min_entry.delete(0,END)
-        self.q_min_entry.insert(0,'-'+aux)
+        self.q_min_entry.insert(0,int('-'+aux))
         #self.q_min_entry.configure(state='readonly')
         return True
 
@@ -449,91 +556,33 @@ class Application():
 
 
 
-    def prepare_MFDFA(self,path_file,scale_min,scale_max,scale_res,q_min,q_max,m,noise,figure):
+    def prepare_MFDFA(self,data,scale_min,scale_max,scale_res,q_min,q_max,m,noise,figure):
         aux=""
-        if len(q_min)>2:
-            if q_min[0]=='-':
-                i=1
-            else:
-                i=0
 
-            while q_min[i]!='.' or i==len(q_min):
-                aux=aux+q_min[i]
-                i=i+1
-
-            if q_min[i]=='.':
-                if (i+1)!=len(q_min):
-                    i=i+1
-                    aux=aux+q_min[i]
-                else:
-                    aux=aux+'0'
-            else:
-                aux=aux+'0'
-
-        else:
-            if q_min[0]=='-':
-                aux=q_min[1]+'0'
-            else:
-                aux=q_min[0]+'0'
-        cant=int(aux)
-        aux=""
-        if len(q_max)>2:
-            if q_max[0]=='-':
-                i=1
-            else:
-                i=0
-
-            while q_max[i]!='.' or i==len(q_max):
-                aux=aux+q_max[i]
-                i=i+1
-
-            if q_max[i]=='.':
-                if (i+1)!=len(q_max):
-                    i=i+1
-                    aux=aux+q_max[i]
-                else:
-                    aux=aux+'0'
-            else:
-                aux=aux+'0'
-
-        else:
-            if q_max[0]=='-':
-                aux=q_max[1]+'0'
-            else:
-                aux=q_max[0]+'0'
-        cant=cant+int(aux)+1
-
-        print(cant)
         m=int(m)
         exponents=np.linspace(math.log2(int(scale_min)),math.log2(int(scale_max)),int(scale_res))
         scale=np.around(2**exponents,0)
+
+        ###Arregalr aqui q
+        if q_min<0:
+            cant=(int(q_min)*-1)*2
+        else:
+            cant=int(q_min)*2
+
+        if q_max<0:
+            cant=cant+(int(q_max)*-1)*2
+        else:
+            cant=cant+int(q_max)*2
+
+        cant=cant+1
+
         q=np.linspace(float(q_min),float(q_max),cant)
-
-
-        #csv.field_size_limit(sys.maxsize)
-        #with open(path_file_time) as file:
-            #reader_time=csv.reader(file,delimiter=separator)
-            #time=list(reader_time)#arreglar esto
-            #time_r=list(file.read().splitlines())
-
-        with open(path_file) as file:
-            #reader=csv.reader(file,delimiter=separator)
-            #data=list(reader)
-            data_r=list(file.read().splitlines())
-
-        data=[]
-        #time=[]
-        #print(data_r[0])
-        #print(time_r[0])
- 
-        data=list(map(float,data_r))
-        #time=list(map(float,time_r))
 
         q_index=index(q)
         print(q)
         print(q_index)
         
-        Hq,tq,hq,Dq,Fq=start_MFDFA(data,m,scale,q,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res))
+        Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res))
 
         #self.write_text("Hq: "+str(Hq)+"\n")
         #self.write_text("tq: "+str(tq)+"\n")
@@ -544,40 +593,99 @@ class Application():
 
 
     def start(self):
+        plt.close('all')
+
         output=""
-        scale_min=self.scale_min_entry.get()
-        if scale_min=="":
-            output=output+"Min value in scale not given\n"
-        scale_max=self.scale_max_entry.get()
-        if scale_max=="":
-            output=output+"Max value in scale not given\n"
-        scale_res=self.scale_res_entry.get()
-        if scale_res=="":
-            output=output+"Res value in scale not given\n" 
-        q_min=self.q_min_entry.get()
-        if q_min=="":
-            output=output+"q min value in q not given\n"   
-        q_max=self.q_max_entry.get()
-        if q_max=="":
-            output=output+"q max value in q not given\n"
 
         path_file=self.path
-        #path_file_time=self.path_time
-        #if path_file_time=="":
-            #output=output+"No data file selected\n"
 
         if path_file=="":
             output=output+"No data file selected\n"
 
+        #path_file_time=self.path_time
+        #if path_file_time=="":
+            #output=output+"No data file selected\n"
+            
+        #csv.field_size_limit(sys.maxsize)
+        #with open(path_file_time) as file:
+            #reader_time=csv.reader(file,delimiter=separator)
+            #time=list(reader_time)#arreglar esto
+            #time_r=list(file.read().splitlines())
+
+
+        if path_file!="":
+            data=[]
+
+            if path_file[-4:]==".mat":
+                data_r= scipy.io.loadmat('fractaldata.mat')
+
+                for e in data_r:
+                    data.append(float(e[0]))
+
+            else:    
+                with open(path_file) as file:
+                    #reader=csv.reader(file,delimiter=separator)
+                    #data=list(reader)
+                    data_r=list(file.read().splitlines())
+
+                #time=[]
+                #print(data_r[0])
+                #print(time_r[0])
+        
+                data=list(map(float,data_r))
+                #time=list(map(float,time_r))
+                #print(data)
+                #print(type(data))
+
+
+
+
+        scale_min=self.scale_min_entry.get()
+        if scale_min=="":
+            output=output+"Min value in scale not given\n"
+
+        scale_max=self.scale_max_entry.get()
+        if scale_max=="":
+            output=output+"Max value in scale not given\n"
+        else:
+            if int(scale_max)>len(data)/4:
+                output=output+"Max in value in scale can't be bigger than a quarter of the size of the data\n"
+
+        scale_res=self.scale_res_entry.get()
+        if scale_res=="":
+            output=output+"Res value in scale not given\n" 
+
+        q_min=self.q_min_entry.get()
+        if q_min=="":
+            output=output+"q min value in q not given\n"   
+
+        q_max=self.q_max_entry.get()
+        if q_max=="":
+            output=output+"q max value in q not given\n"
+
+        q_min=int(q_min)
+        q_max=int(q_max)
+
+        if q_min>q_max:
+            output=output+"q max must be bigger than q min\n"
+        else:
+            if q_max==q_min:
+                output=output+"q max and q min can't be equal\n"
+
         #separator=self.separator_entry.get()
         m=self.m_spinbox.get()
+        print(type(m))
         f=self.figure.get()
         if output!="":
             self.write_text(output)
         else:
-            self.prepare_MFDFA(path_file,scale_min,scale_max,scale_res,q_min,q_max,m,self.noise.get(),self.figure.get())
+            self.prepare_MFDFA(data,float(scale_min),float(scale_max),float(scale_res),q_min,q_max,m,self.noise.get(),self.figure.get())
 
 
+    def close_window(self):
+        self.raiz.quit()
+        plt.close('all')
+        self.raiz.destroy()
 
     def __init__(self):
         self.path=""
@@ -596,6 +704,8 @@ class Application():
         self.raiz.resizable(width=False,height=False)
         self.raiz.configure(bg='white')
         self.raiz.title('MFDFA')
+        self.raiz.protocol('WM_DELETE_WINDOW', self.close_window)
+
 
         #Menu
         self.menubar=Menu(self.raiz)
@@ -624,7 +734,7 @@ class Application():
         # m
         self.m_label=Label(text='m',bg='white')
         self.m_label.grid(row=6,column=1)
-        self.m_spinbox=Spinbox(self.raiz,bg='white',from_=1, to=10, width=4)
+        self.m_spinbox=Spinbox(self.raiz,bg='white',from_=1, to=5, width=4)
         self.m_spinbox.grid(row=7,column=1)
 
         # q
@@ -702,35 +812,51 @@ class Application():
 
 
 class Aux_Window():
-    def __init__(self,title):
+
+    def valuecheck(self,value):
+        newvalue=min(self.scale_window, key=lambda x:abs(x-float(value)))
+        self.window_scale.set(newvalue)
+
+
+    def __init__(self,title,scale_min,scale_max,scale):
+        self.scale_window=scale
+
         self.window=Tk()
         self.window.title(title)
         self.window.protocol('WM_DELETE_WINDOW', self.close_window)
-        self.c=0
-        self.r=0
-
-
-    def add_scale(self,label,begin,end):
         self.var=DoubleVar()
-        self.var.set((end-begin)/2)    
-        self.window_label=Label(self.window,text=label)
-        self.window_label.grid(row=self.r,column=self.c)
-        self.window_scale=Scale(self.window,from_=begin,to=end,variable=self.var,orient=HORIZONTAL,sliderlength=10,length=end/2)
-        self.window_scale.grid(row=self.r+1,column=self.c)
-        #self.window_spinbox=Spinbox(self.window,from_=begin,to=end)
-        #self.window_spinbox.grid(row=self.r,column=self.c+1)
-        self.r+=1
+        self.var.set((scale_max-scale_min)/2)
+        #print(self.var.get())    
+        self.window.resizable(width=False,height=False)
+
+        self.window_label=Label(self.window,text="Select the value for the next regresion and the regresion value:")
+        self.window_label.grid(row=0,column=0)
+        self.window_scale=Scale(self.window,from_=scale_min,to=scale_max,variable=self.var,orient=HORIZONTAL,sliderlength=10,length=int(scale_max/2),tickinterval=int(scale_max/8),command=self.valuecheck)
+        self.window_scale.set(int(scale_max/2))
+        self.window_scale.grid(row=1,column=0)
         
 
-    def start_window(self):
-        self.window.resizable(width=False,height=False)
-        #self.window.geometry('646x650')
+        self.window_spinbox=Spinbox(self.window,bg='white',from_=1, to=5, width=4)
+        self.window_spinbox.grid(row=2,column=0)
+
         self.window_button=Button(self.window,text="Send",command=self.close_window)
-        self.window_button.grid(row=self.r+1,column=self.c)
+        self.window_button.grid(row=5,column=0)
+
         self.window.mainloop()
 
     def close_window(self):
         self.window.quit()
+        #plt.close(20)# desactivada temporalmente
+        self.scale_value=self.window_scale.get()
+        self.regresion_value=self.window_spinbox.get()
+        self.window.destroy()   
+
+    def ret_value_scale(self):
+        return self.scale_value
+
+    def ret_value_regresion(self):
+        return self.regresion_value
+
 
 if __name__=='__main__':
 

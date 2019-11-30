@@ -1,13 +1,16 @@
 from tkinter import *
-from tkinter import ttk
-from tkinter.filedialog import askopenfile
-from tkinter.filedialog import askopenfilename
+import numpy as np
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+plt.switch_backend('TkAgg')
 
 class Aux_Window():
     def __init__(self,title):
         self.window=Tk()
         self.window.title(title)
-        self.window.protocol('WM_DELETE_WINDOW', self.close_window)
+        #self.window.protocol('WM_DELETE_WINDOW', self.close_window)
         self.c=0
         self.r=0
 
@@ -27,14 +30,53 @@ class Aux_Window():
     def start_window(self):
         self.window.resizable(width=False,height=False)
         #self.window.geometry('646x650')
-        self.window_button=Button(self.window,text="Send")
+        self.window_button=Button(self.window,text="Send",command=self.close_window)
         self.window_button.grid(row=self.r+1,column=self.c)
+        
         self.window.mainloop()
 
     def close_window(self):
-        self.window.destroy()
+        plt.close(1)
+        #self.window.quit()
+
+
 
 if __name__=='__main__':
-    w=Aux_Window("Prueba")
-    w.add_scale("Introduce     :",0,1024)
-    w.start_window()
+
+    #t = np.linspace(0, 0.1,1000)
+    #w = 60*2*np.pi
+
+
+    #plt.figure(1)
+    #plt.plot(t,np.cos(w*t))
+    #plt.plot(t,np.cos(w*t-2*np.pi/3))
+    #plt.plot(t,np.cos(w*t-4*np.pi/3))
+    
+    #plt.ion()
+    #plt.pause(0.001)
+    #plt.show()
+
+    #f=Aux_Window("Prueba")
+    #f.add_scale("Introduce     :",0,1024)
+    #f.start_window()
+    a=np.linspace(-5,4,21)
+    print(a)
+    print(type(a[0]))
+    m=list(map(float,a))
+    print(m)
+    print(type(m[0]))
+
+    a=np.linspace(-5,5,21)
+    print(a)
+    print(type(a[0]))
+    m=list(map(float,a))
+    print(m)
+    print(type(m[0]))
+
+    for x in range(1,5):
+        print(x)
+
+
+
+
+
