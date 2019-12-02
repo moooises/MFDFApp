@@ -306,7 +306,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
     print(np.linspace(scale_min,scale_max,scale_res))
     print(scale[ind])
     print(scale[0:ind+1])
-    print(scale[ind+1:])
+    print(scale[ind:])
 
     
     for nq in range(0,len(q)):
@@ -315,9 +315,9 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         Hq1=C[0]
         qRegLine1.append(np.polyval(C,np.log2(scale[0:ind+1])))
 
-        C=np.polyfit(np.log2(scale[ind+1:]),np.log2(Fq[nq][ind+1:]),1)
+        C=np.polyfit(np.log2(scale[ind:]),np.log2(Fq[nq][ind:]),1)
         Hq2=C[0]
-        qRegLine2.append(np.polyval(C,np.log2(scale[ind+1:])))
+        qRegLine2.append(np.polyval(C,np.log2(scale[ind:])))
 
         Hq.append([])
         #qRegLine.append([])
@@ -345,7 +345,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         for k in qindex:
             plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
             plt.plot(X[0:ind+1],qRegLine1[k],color=colours[i])
-            plt.plot(X[ind+1:],qRegLine2[k],color=colours[i])
+            plt.plot(X[ind:],qRegLine2[k],color=colours[i])
             i=i+1
 
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
@@ -359,7 +359,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         for k in qindex:
             plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
             plt.plot(X[0:ind+1],qRegLine1[k],color=colours[i])
-            plt.plot(X[ind+1:],qRegLine2[k],color=colours[i])
+            plt.plot(X[ind:],qRegLine2[k],color=colours[i])
             i=i+1
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
         plt.xticks(X,scale)
