@@ -118,7 +118,7 @@ class Application():
         m=int(m)
         exponents=np.linspace(math.log2(int(scale_min)),math.log2(int(scale_max)),int(scale_res))
         scale=np.around(2**exponents,0)
-
+        print(scale)
         ###Arregalr aqui q
         if q_min<0:
             cant=(int(q_min)*-1)*2
@@ -137,11 +137,11 @@ class Application():
         q_index=index(q)
         #print(q)
         #print(q_index)
-
-        s,l,r,p=Select_Scale(data,scale,q,m,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res))
+        data=np.array(data)
+        l,r,s=Select_Scale(data,scale,q,m,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res))
 
         
-        Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res),s,l,r,p)
+        Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s)
 
         #self.write_text("Hq: "+str(Hq)+"\n")
         #self.write_text("tq: "+str(tq)+"\n")
@@ -245,6 +245,7 @@ class Application():
         self.raiz.quit()
         plt.close('all')
         self.raiz.destroy()
+        sys.exit()
 
     def __init__(self):
         self.path="/home/mo_oises/Schreibtisch/TFG/MFDFA/App MFDFA/Ver 2.5/multifractal_paper.dat"

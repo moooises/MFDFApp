@@ -1,8 +1,10 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import askopenfilename
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.font_manager import FontProperties
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -15,6 +17,8 @@ import sys
 
 plt.switch_backend('TkAgg')
 colours=["blue","green","red","cyan","magenta","yellow","black"]
+
+
 
 def index(q):
     #i=0
@@ -50,22 +54,24 @@ def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_re
     for i in range(0,len(q)):
         Fq.append([])
 
-
     for ns in range(0,len(scale)):
         segments.append(math.floor(len(data)/scale[ns]))
         RMS.append([])
         Idx_start=0
-        sum=int(scale[ns])
-        Idx_stop=sum-1
+        suma=int(scale[ns])
+        Idx_stop=suma-1
         qRMS.append([])
+        print(Idx_start)
+        print(Idx_stop)
         for v in range(0,segments[-1]):
             Index=range(Idx_start,Idx_stop)
+            print(Index)
             X_Idx=data[Index]
             C=np.polyfit(Index,X_Idx,m)
             fit=np.polyval(C,Index)
             RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
             Idx_start=Idx_stop+1
-            Idx_stop=Idx_stop+sum
+            Idx_stop=Idx_stop+suma
 
 
         for nq in range(0,len(q)):
@@ -98,15 +104,14 @@ def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_re
     #plt.title("One section")
     #plt.xlabel('scale')
     #plt.ylabel('Fq')
+    print("All good")
     
-    
-    scale_selector=Aux_Window("Scale Selector",X,Fq,qRegLine,q,qindex,scale)
-    #s=scale_selector.ret_value_scale()
-    #l=scale_selector.ret_value_left_delimiter()
-    #r=scale_selector.ret_value_right_delimiter()
-    #p=scale_selector.ret_value_check()
+    scale_selector=Aux_Window("Select data to analyse",X,Fq,qRegLine,q,qindex,scale)
+    l=scale_selector.ret_value_left_delimiter()
+    r=scale_selector.ret_value_right_delimiter()
+    s=scale_selector.ret_value_section()
 
-    return float(s),float(l),float(r),p
+    return l,r,s
 
 def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section):
 
@@ -132,6 +137,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
             data=np.cumsum(data-np.mean(data))
             plt.plot(data,label='Random Walk')
             plt.legend()
+
         else:
             plt.subplot(4,2,1)
 
@@ -142,6 +148,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
             plt.title("Time serie")
             plt.legend()
     else:
+
 
         if ind_figure==1:
             plt.figure(1)
@@ -184,8 +191,8 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         segments.append(math.floor(len(data)/scale[ns]))
         RMS.append([])
         Idx_start=0
-        sum=int(scale[ns])
-        Idx_stop=sum
+        suma=int(scale[ns])
+        Idx_stop=suma
         for v in range(0,segments[-1]):
             Index=range(Idx_start,Idx_stop)
 
@@ -196,7 +203,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
             fit=np.polyval(C,Index)
             RMS[ns].append(math.sqrt(np.mean((X_Idx-fit)**2)))
             Idx_start=Idx_stop+1
-            Idx_stop=Idx_stop+sum
+            Idx_stop=Idx_stop+suma
         F.append(np.sqrt(np.mean([l**2 for l in RMS[ns]])))
         
         
@@ -216,11 +223,16 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
-        plt.xticks(X,scale)##Esta es nuestra autentica escala
-        plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
+        plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
+        plt.yticks(RegLine,np.round(F,1),rotation=45)
         plt.legend()
     else:
         plt.figure(2)
+
+        #plt.xticks(np.arange(min(scale),max(scale)+1,5))
+        #plt.yticks(np.arange(min(np.round(np.linspace(1,32,19))),max(np.round(np.linspace(1,32,19)))+1,5))
+
+        #plt.gca().locator_params(axis='both',nbins=2)
 
         if one_section==0:
             plt.subplot(1,2,ind_figure)
@@ -233,8 +245,9 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))#####
-        plt.xticks(X,scale)##Esta es nuestra autentica escala
-        plt.yticks(RegLine,np.round(np.linspace(1,32,19)))
+        plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
+        plt.yticks(RegLine,np.round(F,1),rotation=45)
+        print(RegLine)
         plt.legend()
     
     return H
@@ -261,8 +274,8 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         segments.append(math.floor(len(data)/scale[ns]))
         RMS.append([])
         Idx_start=0
-        sum=int(scale[ns])
-        Idx_stop=sum-1
+        suma=int(scale[ns])
+        Idx_stop=suma-1
         qRMS.append([])
         for v in range(0,segments[-1]):
             Index=range(Idx_start,Idx_stop)
@@ -271,7 +284,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
             fit=np.polyval(C,Index)
             RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
             Idx_start=Idx_stop+1
-            Idx_stop=Idx_stop+sum
+            Idx_stop=Idx_stop+suma
 
 
         for nq in range(0,len(q)):
@@ -298,6 +311,8 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
 
 
     X=np.log2(scale)
+    Y1=[]
+    Y2=[]
 
     
     i=0
@@ -307,12 +322,18 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         plt.ylabel('Fq')
         plt.title("q-order RMS")
         for k in qindex:
-            plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label=q[k])
-            plt.plot(X,qRegLine[k],color=colours[i])
+            Y1.append([])
+            Y1[-1]=np.log2(Fq[k])
+            plt.plot(X,Y1[-1],"o",color=colours[i],label=q[k])
+            Y2.append([])
+            Y2[-1]=qRegLine[k]
+            plt.plot(X,Y2[-1],color=colours[i])
+
+
             i=i+1
 
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
-        plt.xticks(X,scale)
+        plt.xticks(X,scale,rotation=45)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.38), shadow=True, ncol=4)   
     else:
@@ -326,14 +347,44 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         plt.ylabel('Fq')
         plt.title("q-order RMS")
         for k in qindex:
-            plt.plot(X,np.log2(Fq[k]),"o",color=colours[i],label=q[k])
-            plt.plot(X,qRegLine[k],color=colours[i])
+            Y1.append([])
+            Y1[-1]=np.log2(Fq[k])
+            plt.plot(X,Y1[-1],"o",color=colours[i],label=q[k])
+            Y2.append([])
+            Y2[-1]=qRegLine[k]
+            plt.plot(X,Y2[-1],color=colours[i])
+
+
             i=i+1
         plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
-        plt.xticks(X,scale)
+        plt.xticks(X,scale,rotation=45)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
 
+    #Calculo de RMSE
+
+    RMSE=[]
+    for i in range(0,len(qindex)):
+        aux=[]
+        for j in range(0,len(Y1)):
+            aux.append(math.pow(Y2[i][j]-Y1[i][j],2))
+        RMSE.append(math.sqrt(sum(aux)/len(Y1)))
+
+
+    R2=[]
+    for i in range(0,len(Y1)):
+        aux1=[]
+        aux2=[]
+        Y1_m=sum(Y1[i])/len(Y1[i])
+        for j in range(0,len(Y1)):
+            aux2.append(math.pow(Y2[i][j]-Y1_m,2))
+            aux1.append(math.pow(Y1[i][j]-Y1_m,2))
+        R2.append((sum(aux2)/len(aux2))/(sum(aux1)/len(aux1)))
+
+
+    mu=[]
+    for i in qindex:
+        mu.append(Hq[i])
 
     tq=Hq*q-1
 
@@ -443,19 +494,24 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         plt.plot(q,Hq,color="blue")
 
 
-    return  Hq,tq,hq,Dq,Fq
+    return  Hq,tq,hq,Dq,Fq,mu,R2,RMSE
 
 
-def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_res,section,left,right,one_section):
+def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_res,l,r,s):
 
-    ind_izq=np.where(scale==left)
-    ind_derch=np.where(scale==right)
-    ind_sect=np.where(scale==section)
 
-    if one_section==1:
+    if s==-1:
+        
+        if l==-1:
+            l=0
+        if r==-1:
+            r=len(scale)
+        else:
+            r+=1
+        
 
-        H=DFA(data,scale[int(ind_izq[0]):int(ind_derch[0])+1],m,noise,figure,scale_min,scale_max,scale_res,1,one_section)
-
+        H=DFA(data,scale[l:r],m,noise,figure,scale_min,scale_max,scale_res,1,1)
+     
         Adjustment=0
         if H<0.2:
             Adjustment-=1
@@ -466,14 +522,24 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[int(ind_izq[0]):int(ind_derch[0])+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,one_section)
-    
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:r],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,1)
+
+        Create_table("Results",q,q_index,mu,R2,RMSE)
+
+
     else:
+
+        if l==-1:
+            l=0
+        if r==-1:
+            r=len(scale)
+        else:
+            r+=1
 
         if figure=="1":
             plt.figure(num='Section 1')
 
-        H=DFA(data,scale[int(ind_izq[0]):int(ind_sect[0])+1],m,noise,figure,scale_min,scale_max,scale_res,1,one_section)
+        H=DFA(data,scale[l:s+1],m,noise,figure,scale_min,scale_max,scale_res,1,0)
 
         Adjustment=0
         if H<0.2:
@@ -485,13 +551,13 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[int(ind_izq[0]):int(ind_sect[0])+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,one_section)
+        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[l:s+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0)
 
    
         if figure=="1":
             plt.figure(num='Section 2')
 
-        H=DFA(data,scale[int(ind_sect[0]):int(ind_derch[0])+1],m,noise,figure,scale_min,scale_max,scale_res,2,one_section)
+        H=DFA(data,scale[s:r],m,noise,figure,scale_min,scale_max,scale_res,2,0)
 
         Adjustment=0
         if H<0.2:
@@ -506,14 +572,88 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
         if figure=="1":
             plt.figure(num='Section 2')
 
-        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[int(ind_sect[0]):int(ind_derch[0])+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,one_section)
+        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[s:r],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0)
 
-        plt.show(block=True)
-        plt.show()
+    plt.show(block=True)
+    plt.show()
     
 
 
     return Hq,tq,hq,Dq,Fq
+
+
+def Create_table(title,q,q_index,mu,R2,RMSE):
+    Result_Table(title,q,q_index,mu,R2,RMSE)
+
+class Result_Table():
+
+    def __init__(self,title,q,q_index,mu,R2,RMSE):
+        self.window_table=Toplevel()
+        #self.frame=Frame(self.window_table)
+        #self.frame.grid(row=0,column=0,columnspan=2,sticky='nsew')
+        self.window_table.resizable(width=True,height=True)
+        self.window_table.title(title)
+
+        self.window_table.protocol('WM_DELETE_WINDOW', self.close_window)
+
+
+        columns_name=('q','\u03BC','R\u00b2','RMSE')
+
+        self.tree=ttk.Treeview(self.window_table,columns=columns_name,show='headings')
+        self.tree.grid(row=0,column=0,columnspan=2,sticky='nsew')
+        for col in columns_name:
+            self.tree.heading(col,text=col,anchor='center')
+            self.tree.column(col,anchor='center')
+
+
+        for i in range(0,len(q_index)+1):
+            if i==len(q_index):
+                self.tree.insert("","end",values=("Total",0,min(R2),0),tag=i)
+            else:
+                self.tree.insert("","end",values=(q[q_index[i]],mu[i],R2[i],RMSE[i]),tag=i)
+
+        self.tree.tag_configure(len(q_index),background='grey90')
+
+        self.button_txt=Button(self.window_table,text="Save as .txt",command=self.save_txt)
+        self.button_txt.grid(row=1,column=0,sticky='nsew')
+
+        self.button_csv=Button(self.window_table,text="Save as .csv",command=self.save_csv)
+        self.button_csv.grid(row=1,column=1,sticky='nsew')
+
+
+        self.window_table.grid_columnconfigure(0, weight=1)
+        self.window_table.grid_rowconfigure(0, weight=1)
+        self.window_table.grid_columnconfigure(1, weight=1)
+
+
+
+        self.window_table.update()
+
+    def save_txt(self):
+        
+        with open("File.txt","w+") as file:
+            for line in self.tree.get_children():
+                for value in self.tree.item(line)['values']:
+                    file.write(str(value)+" ")
+                file.write('\n')
+    
+    def save_csv(self):
+
+        with open('file.csv', mode='w') as file:
+            file_writer=csv.writer(file,delimiter="|")
+            
+            for line in self.tree.get_children():
+                row_list=[]
+                for value in self.tree.item(line)['values']:
+                    row_list.append(str(value))
+                file_writer.writerow(row_list)
+
+
+    def close_window(self):
+        self.window_table.destroy()  
+
+
+
 
 
 class Aux_Window():
@@ -521,11 +661,9 @@ class Aux_Window():
 
         r=max
         l=min
-        found=False
-
         distance1=math.sqrt(pow(data-X[center],2))
         i=0
-        while l<r and i<100:
+        while l<r and i<10000:
 
             c1=int((center+l)/2)
             c2=int((r+center)/2)
@@ -548,15 +686,13 @@ class Aux_Window():
                 l=center
                 center=c2
 
-            if distance1<distance2:
-                p=center
+            #if distance1<distance2:
+                #p=center
                 
             distance1=distance2
             i=i+1
 
-        return X[center]
-
-
+        return center,X[center]
 
     
     def open_info(self):
@@ -569,6 +705,7 @@ class Aux_Window():
         self.info_text.insert(END,'\nThe section delimiter select the limit between the two section of the data.     Each section will be analyze separetly.\n\nThis deceisions can be made observing the figure.') 
         self.info_text.insert(END,"\nIn case you want just one section check the one section mark")
         self.info_text.configure(state=DISABLED)
+
         self.info_text.pack(side=TOP,fill=BOTH,expand=1)
         self.info_button=Button(self.raiz_info,text='Close',command=self.close_info)
         self.info_button.pack(side=BOTTOM)
@@ -587,7 +724,8 @@ class Aux_Window():
 
 
     def left_del(self,event):
-        if event.button==1:
+        if event.button==1 and not self.section_var.get():
+            print(self.section_var.get())
             if self.left_bool:
                 i=-1
                 while self.a.lines[i].get_label()!="left":
@@ -596,7 +734,7 @@ class Aux_Window():
                 self.a.lines[i].remove()
                     
 
-            p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+            self.left_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
 
             self.line_left=self.a.axvline(x=p,color="red",label="left")
             print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
@@ -604,15 +742,10 @@ class Aux_Window():
                     event.x, event.y, event.xdata, event.ydata))
             self.canvas.draw()
             self.left_bool=True
-            self.deep_left=0
-
-
-
-            print("largo")
-            print(len(self.a.lines))
 
     def right_del(self,event):
-        if event.button==3:
+        if event.button==3 and not self.section_var.get():
+            print(self.section_var.get())
             if self.right_bool:
                 i=-1
                 while self.a.lines[i].get_label()!="right":
@@ -620,7 +753,7 @@ class Aux_Window():
                     i-=1
                 self.a.lines[i].remove()
 
-            p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+            self.right_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
 
             self.line_right=self.a.axvline(x=p,color="blue",label="right")
             print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
@@ -628,13 +761,11 @@ class Aux_Window():
                     event.x, event.y, event.xdata, event.ydata))
             self.canvas.draw()
             self.right_bool=True
-            self.deep_right=0
-
-            print("largo")
-            print(len(self.a.lines))
 
     def section(self,event):
-        if event.button==2:
+        if event.button==2 or self.section_var.get():
+            print(self.section_var.get())
+
             if self.section_bool:
                 i=-1
                 while self.a.lines[i].get_label()!="section":
@@ -642,7 +773,7 @@ class Aux_Window():
                     i-=1
                 self.a.lines[i].remove()
 
-            p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+            self.section_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
 
             self.line_section=self.a.axvline(x=p,color="green",label="section")
             print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
@@ -650,16 +781,36 @@ class Aux_Window():
                     event.x, event.y, event.xdata, event.ydata))
             self.canvas.draw()
             self.section_bool=True
-            self.deep_section=0
     
-            print("largo")
-            print(len(self.a.lines))
-    
+    def reset_line(self):
+        if self.left_bool:
+            self.a.lines[-1].remove()
+            self.left_bool=False
+            self.left_index=-1
+
+        if self.right_bool:
+            self.a.lines[-1].remove()
+            self.right_bool=False
+            self.right_index=-1
+
+        if self.section_bool:    
+            self.a.lines[-1].remove()
+            self.section_bool=False
+            self.section_index=-1
+
+
+        self.canvas.draw()
+
+
 
     def __init__(self,title,X,Fq,qRegLine,q,qindex,scale):
         self.left_bool=False
         self.right_bool=False
         self.section_bool=False
+
+        self.section_index=-1
+        self.left_index=-1
+        self.right_index=-1
 
         self.x_Axis=X#needed for axvline
         self.center=int(len(X)/2)
@@ -682,28 +833,72 @@ class Aux_Window():
         for k in qindex:
             self.a.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
             self.a.plot(X,qRegLine[k],color=colours[i])
+
             i=i+1
+        self.a.set_xticks(X, minor=False)
+        self.a.set_xticklabels(np.linspace(int(min(scale)),int(max(scale)),len(scale)),fontdict=None,minor=False,rotation=45)
+
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
         #a.xticks(X,scale)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
-        self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
+
+        #fontP = FontProperties()
+        #fontP.set_size('small')
+        self.a.set_title("q-order RMS",loc='right')
+        self.a.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=True)
+        #self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
         #a.ion()
         #a.pause(0.001)
-
-        print(X)
-        print(len(X))
-
+        
         self.canvas=FigureCanvasTkAgg(self.f,master=self.window)
         self.canvas.draw()
-        self.canvas.get_tk_widget().pack(side=BOTTOM,fill=BOTH,expand=True)
-        toolbar=NavigationToolbar2Tk(self.canvas,self.window)
+        self.canvas.get_tk_widget().grid(row=0,column=0,columnspan=3,sticky='nsew')
+
+        #self.canvas.get_tk_widget().grid_columnconfigure(0, weight=1)
+        #self.canvas.get_tk_widget().grid_rowconfigure(0, weight=1)
+
+        #self.canvas.get_tk_widget().pack(side=BOTTOM,fill=BOTH,expand=True)
+        self.frame_toolbar=Frame(master=self.window)
+        self.frame_toolbar.grid(row=1,column=0,columnspan=3,sticky='nsew')
+
+        #self.frame_toolbar.grid_columnconfigure(0, weight=1)
+        #self.frame_toolbar.grid_rowconfigure(1, weight=1)
+
+        toolbar=NavigationToolbar2Tk(self.canvas,self.frame_toolbar)
         toolbar.update()
-        self.canvas._tkcanvas.pack(side=TOP,fill=BOTH,expand=True)
 
-        cid1=self.f.canvas.mpl_connect('button_press_event',self.left_del)
-        cid2=self.f.canvas.mpl_connect('button_press_event',self.right_del)
-        cid3=self.f.canvas.mpl_connect('button_press_event',self.section)
 
+        self.cid1=self.f.canvas.mpl_connect('button_press_event',self.left_del)
+        self.cid2=self.f.canvas.mpl_connect('button_press_event',self.right_del)
+        self.cid3=self.f.canvas.mpl_connect('button_press_event',self.section)
+
+        self.reset_button=Button(self.window,text="Reset Values",command=self.reset_line)
+        self.reset_button.grid(row=2,column=1,sticky='nsew')
+        #self.reset_button.grid_columnconfigure(1, weight=1)
+        #self.reset_button.grid_rowconfigure(2, weight=1)
+
+        self.section_var=IntVar()
+
+        self.checkbutton_section=Checkbutton(self.window,text='Section',onvalue=1,offvalue=0,var=self.section_var)
+        self.checkbutton_section.grid(row=2, column=0,sticky='nsew')
+        #self.checkbutton_section.grid_columnconfigure(0, weight=1)
+        #self.checkbutton_section.grid_rowconfigure(2, weight=1)
+
+
+        self.send_button=Button(self.window,text='Send',command=self.send_data)
+        self.send_button.grid(row=2,column=2,sticky='nsew')
+
+        #self.send_button.grid_columnconfigure(2, weight=1)
+        #self.send_button.grid_rowconfigure(2, weight=1)
+
+        self.window.grid_columnconfigure(0, weight=1)
+        self.window.grid_rowconfigure(0, weight=1)
+
+        self.window.grid_columnconfigure(0, weight=1)
+        #self.window.grid_rowconfigure(1, weight=1)
+
+        self.window.grid_columnconfigure(2, weight=1)
+        #self.window.grid_rowconfigure(2, weight=1)
 
 
 
@@ -711,9 +906,52 @@ class Aux_Window():
 
     #I don't know how to make it work like the other one, for any reason that doesn't work anymore
 
+    def send_data(self):
+
+        if self.left_index!=-1 and self.right_index!=-1:
+            if self.right_index<=self.left_index:
+                messagebox.showwarning("Warning", "Right delimiter can't be equal or lower than left delimiter")
+            elif self.section_index!=-1:
+                if self.right_index<self.section_index:
+                    messagebox.showwarning("Warning", "Right delimiter can't be lower than section delimiter")
+                elif self.left_index>=self.section_index:
+                    messagebox.showwarning("Warning", "Left delimiter can't be equal or greater than section delimiter")
+                else:
+                    self.f.canvas.mpl_disconnect(self.cid1)
+                    self.f.canvas.mpl_disconnect(self.cid2)
+                    self.f.canvas.mpl_disconnect(self.cid3)
+                    self.window.quit()
+                    self.window.destroy() 
+            else:
+                self.f.canvas.mpl_disconnect(self.cid1)
+                self.f.canvas.mpl_disconnect(self.cid2)
+                self.f.canvas.mpl_disconnect(self.cid3)
+                self.window.quit()
+                self.window.destroy() 
+
+        else:
+            self.f.canvas.mpl_disconnect(self.cid1)
+            self.f.canvas.mpl_disconnect(self.cid2)
+            self.f.canvas.mpl_disconnect(self.cid3)
+            self.window.quit()
+            self.window.destroy()  
+
     def close_window(self):
+        self.f.canvas.mpl_disconnect(self.cid1)
+        self.f.canvas.mpl_disconnect(self.cid2)
+        self.f.canvas.mpl_disconnect(self.cid3)
         self.window.quit()
         self.window.destroy()  
         sys.exit()
+
+
+    def ret_value_left_delimiter(self):
+        return self.left_index
+
+    def ret_value_right_delimiter(self):
+        return self.right_index
+
+    def ret_value_section(self):
+        return self.section_index
 
     

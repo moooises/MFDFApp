@@ -10,7 +10,7 @@ def DFA(data,scale,m):
     plt.plot(data,label='time series')
     plt.xlabel('time')
     plt.ylabel('Amplitude')
-    plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
+    ######plt.plot(np.cumsum(data-np.mean(data)),label='Random Walk')
     plt.legend()
     #exponents=np.linspace(math.log2(16),math.log2(1024),19)
     #scale=np.around(2**exponents,0)
@@ -21,7 +21,7 @@ def DFA(data,scale,m):
     F=[]
     RMS=[]
     #print(data)
-    data=np.cumsum(data-np.mean(data))
+    #####data=np.cumsum(data-np.mean(data))
     #print(data)
 
     for ns in range(0,len(scale)):
@@ -32,6 +32,8 @@ def DFA(data,scale,m):
         Idx_stop=sum
         for v in range(0,segments[-1]):
             Index=range(Idx_start,Idx_stop)
+            #print(Index)
+            #print(data[Index])
             X_Idx=data[Index]
             #print(Index)
             #print(len(Index))
@@ -67,7 +69,7 @@ def DFA(data,scale,m):
 
 def MFDFA1(data,scale,q,m,qindex,Adjustment):
     #probar con los arrays de numpy
-    data=np.cumsum(data-np.mean(data))
+    #data=np.cumsum(data-np.mean(data))
 
 
     segments=[]
@@ -80,7 +82,7 @@ def MFDFA1(data,scale,q,m,qindex,Adjustment):
     for i in range(0,len(q)):
         Fq.append([])
 
-
+    print(type(data))
     for ns in range(0,len(scale)):
         segments.append(math.floor(len(data)/scale[ns]))
         RMS.append([])
@@ -88,9 +90,13 @@ def MFDFA1(data,scale,q,m,qindex,Adjustment):
         sum=int(scale[ns])
         Idx_stop=sum-1
         qRMS.append([])
+        print(Idx_start)
+        print(Idx_stop)
         for v in range(0,segments[-1]):
             Index=range(Idx_start,Idx_stop)
+            print(Index)
             X_Idx=data[Index]
+            #print(data[Index])
             C=np.polyfit(Index,X_Idx,m)
             fit=np.polyval(C,Index)
             RMS[ns].append(np.sqrt(np.mean((X_Idx-fit)**2)))
@@ -272,7 +278,7 @@ if __name__ == "__main__":
     q=np.linspace(-5,5,101)
     m=1
     qindex=[20,40,60,80]
-
+    print(scale)
     H=DFA(multifractal,scale,1)
 
     #if H<0.2:
@@ -302,5 +308,5 @@ if __name__ == "__main__":
 
     Hq,tq,hq,Dq,Fq=MFDFA1(multifractal,scale,q,1,qindex,Adjustment)
 
-    Ht,Htbin,Ph,Dh=MDFA2(multifractal,scale,q,2,qindex,Adjustment)
+    #Ht,Htbin,Ph,Dh=MDFA2(multifractal,scale,q,2,qindex,Adjustment)
         
