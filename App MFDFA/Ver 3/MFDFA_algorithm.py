@@ -3,6 +3,7 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import asksaveasfile 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.font_manager import FontProperties
 from matplotlib.figure import Figure
@@ -61,11 +62,8 @@ def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_re
         suma=int(scale[ns])
         Idx_stop=suma-1
         qRMS.append([])
-        print(Idx_start)
-        print(Idx_stop)
         for v in range(0,segments[-1]):
             Index=range(Idx_start,Idx_stop)
-            print(Index)
             X_Idx=data[Index]
             C=np.polyfit(Index,X_Idx,m)
             fit=np.polyval(C,Index)
@@ -219,13 +217,14 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.xlabel('Scale')
         plt.ylabel('Overall RMS')
         plt.rcParams["axes.titlesize"] = 8
-        plt.title("Overall RMS")
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
         plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
         plt.yticks(RegLine,np.round(F,1),rotation=45)
-        plt.legend()
+
+        plt.title("Overall RMS",loc='right')
+        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
     else:
         plt.figure(2)
 
@@ -241,15 +240,14 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.xlabel('Scale')
         plt.ylabel('Overall RMS')
         plt.rcParams["axes.titlesize"] = 8
-        plt.title("Overall RMS")
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))#####
         plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
         plt.yticks(RegLine,np.round(F,1),rotation=45)
-        print(RegLine)
-        plt.legend()
-    
+
+        plt.title("Overall RMS",loc='right')
+        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)    
     return H
 
 def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section):
@@ -320,7 +318,6 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         plt.subplot(4,2,4)
         plt.xlabel('scale')
         plt.ylabel('Fq')
-        plt.title("q-order RMS")
         for k in qindex:
             Y1.append([])
             Y1[-1]=np.log2(Fq[k])
@@ -335,7 +332,9 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
         plt.xticks(X,scale,rotation=45)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, -0.38), shadow=True, ncol=4)   
+        plt.title("q-order RMS",loc='right')
+        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
+
     else:
         plt.figure(4)
         if one_section==0:
@@ -345,7 +344,6 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
 
         plt.xlabel('scale')
         plt.ylabel('Fq')
-        plt.title("q-order RMS")
         for k in qindex:
             Y1.append([])
             Y1[-1]=np.log2(Fq[k])
@@ -356,7 +354,8 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
 
 
             i=i+1
-        plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
+        plt.title("q-order RMS",loc='right')
+        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
         plt.xticks(X,scale,rotation=45)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
@@ -551,7 +550,7 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[l:s+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0)
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:s+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0)
 
    
         if figure=="1":
@@ -572,7 +571,7 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
         if figure=="1":
             plt.figure(num='Section 2')
 
-        Hq,tq,hq,Dq,Fq=MFDFA(data,scale[s:r],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0)
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[s:r],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0)
 
     plt.show(block=True)
     plt.show()
@@ -600,7 +599,7 @@ class Result_Table():
         columns_name=('q','\u03BC','R\u00b2','RMSE')
 
         self.tree=ttk.Treeview(self.window_table,columns=columns_name,show='headings')
-        self.tree.grid(row=0,column=0,columnspan=2,sticky='nsew')
+        self.tree.grid(row=0,column=0,sticky='nsew')
         for col in columns_name:
             self.tree.heading(col,text=col,anchor='center')
             self.tree.column(col,anchor='center')
@@ -614,11 +613,10 @@ class Result_Table():
 
         self.tree.tag_configure(len(q_index),background='grey90')
 
-        self.button_txt=Button(self.window_table,text="Save as .txt",command=self.save_txt)
+        self.button_txt=Button(self.window_table,text="Save data",command=self.save)
         self.button_txt.grid(row=1,column=0,sticky='nsew')
 
-        self.button_csv=Button(self.window_table,text="Save as .csv",command=self.save_csv)
-        self.button_csv.grid(row=1,column=1,sticky='nsew')
+ 
 
 
         self.window_table.grid_columnconfigure(0, weight=1)
@@ -629,25 +627,20 @@ class Result_Table():
 
         self.window_table.update()
 
-    def save_txt(self):
+    def save(self):
         
-        with open("File.txt","w+") as file:
-            for line in self.tree.get_children():
-                for value in self.tree.item(line)['values']:
-                    file.write(str(value)+" ")
-                file.write('\n')
-    
-    def save_csv(self):
-
-        with open('file.csv', mode='w') as file:
-            file_writer=csv.writer(file,delimiter="|")
-            
-            for line in self.tree.get_children():
-                row_list=[]
-                for value in self.tree.item(line)['values']:
-                    row_list.append(str(value))
-                file_writer.writerow(row_list)
-
+        files = [('All Files', '*.*'),('Data Document', '*.dat'),('Text Document', '*.txt'),('CSV Document', '*.csv')]
+        try:
+            file_path=asksaveasfile(filetypes=files, defaultextension=files)
+  
+            with open(file_path.name,"w+") as file:
+                for line in self.tree.get_children():
+                    for value in self.tree.item(line)['values']:
+                        print(str(value))
+                        file.write(str(value)+"|")
+                    file.write('\n')
+        except:
+            print("Prepare exception")
 
     def close_window(self):
         self.window_table.destroy()  
@@ -725,62 +718,76 @@ class Aux_Window():
 
     def left_del(self,event):
         if event.button==1 and not self.section_var.get():
-            print(self.section_var.get())
+
+            self.left_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+    
             if self.left_bool:
                 i=-1
                 while self.a.lines[i].get_label()!="left":
-                    print(self.a.lines[i].get_label())
                     i-=1
                 self.a.lines[i].remove()
-                    
 
-            self.left_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+            if self.left_pre!=p:
+                self.line_left=self.a.axvline(x=p,color="red",label="left")
+                self.left_pre=p
+                self.left_bool=True
+            else:
+                self.left_bool=False
+                self.left_pre=-1
 
-            self.line_left=self.a.axvline(x=p,color="red",label="left")
-            print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-                    ('double' if event.dblclick else 'single', event.button,
-                    event.x, event.y, event.xdata, event.ydata))
+            #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+            #        ('double' if event.dblclick else 'single', event.button,
+            #        event.x, event.y, event.xdata, event.ydata))
             self.canvas.draw()
-            self.left_bool=True
 
     def right_del(self,event):
         if event.button==3 and not self.section_var.get():
-            print(self.section_var.get())
-            if self.right_bool:
-                i=-1
-                while self.a.lines[i].get_label()!="right":
-                    print(self.a.lines[i].get_label())
-                    i-=1
-                self.a.lines[i].remove()
 
             self.right_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
 
-            self.line_right=self.a.axvline(x=p,color="blue",label="right")
-            print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-                    ('double' if event.dblclick else 'single', event.button,
-                    event.x, event.y, event.xdata, event.ydata))
+            if self.right_bool:
+                i=-1
+                while self.a.lines[i].get_label()!="right":
+                    i-=1
+                self.a.lines[i].remove()
+
+            if self.right_pre!=p:
+                self.line_right=self.a.axvline(x=p,color="blue",label="right")
+                self.right_pre=p
+                self.right_bool=True
+            else:
+                self.right_bool=False
+                self.right_pre=-1
+
+            #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+            #        ('double' if event.dblclick else 'single', event.button,
+            #        event.x, event.y, event.xdata, event.ydata))
             self.canvas.draw()
-            self.right_bool=True
 
     def section(self,event):
         if event.button==2 or self.section_var.get():
-            print(self.section_var.get())
+
+            self.section_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
 
             if self.section_bool:
                 i=-1
                 while self.a.lines[i].get_label()!="section":
-                    print(self.a.lines[i].get_label())
                     i-=1
                 self.a.lines[i].remove()
 
-            self.section_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+            if self.section_pre!=p:
+                self.line_section=self.a.axvline(x=p,color="green",label="section")
+                self.section_pre=p
+                self.section_bool=True
+            else:
+                self.section_bool=False
+                self.section_pre=-1
 
-            self.line_section=self.a.axvline(x=p,color="green",label="section")
-            print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-                    ('double' if event.dblclick else 'single', event.button,
-                    event.x, event.y, event.xdata, event.ydata))
+
+            #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+            #        ('double' if event.dblclick else 'single', event.button,
+            #        event.x, event.y, event.xdata, event.ydata))
             self.canvas.draw()
-            self.section_bool=True
     
     def reset_line(self):
         if self.left_bool:
@@ -811,6 +818,10 @@ class Aux_Window():
         self.section_index=-1
         self.left_index=-1
         self.right_index=-1
+
+        self.section_pre=-1
+        self.left_pre=-1
+        self.right_pre=-1
 
         self.x_Axis=X#needed for axvline
         self.center=int(len(X)/2)
