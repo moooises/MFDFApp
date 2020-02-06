@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import askopenfilename
-from MFDFA_algorithm import start_MFDFA, index, Select_Scale, MFDFA, DFA
+from MFDFA_algorithm import start_MFDFA, Select_Scale, MFDFA, DFA
 
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt_aux
@@ -11,14 +11,17 @@ import scipy.io
 import math
 import csv
 import sys
+import random
 
+
+random.seed(5)
 
 
 class Application():
 
 
     def reload_q_min_max(self):
-        aux=str(self.q_entry.get())
+        aux=str(self.q_inc_entry.get())
         if aux!="":
             #self.q_max_entry.configure(state='normal')
             self.q_max_entry.delete(0,END)
@@ -112,7 +115,7 @@ class Application():
 
 
 
-    def prepare_MFDFA(self,data,scale_min,scale_max,scale_res,q_min,q_max,m,noise,figure):
+    def prepare_MFDFA(self,data,scale_min,scale_max,scale_res,q_inc,q_min,q_max,m,noise,figure):
         aux=""
 
         m=int(m)
@@ -120,28 +123,33 @@ class Application():
         scale=np.around(2**exponents,0)
         print(scale)
         ###Arregalr aqui q
-        if q_min<0:
-            cant=(int(q_min)*-1)*2
-        else:
-            cant=int(q_min)*2
+       
+        q=np.arange(q_min,q_max+q_inc,q_inc)
+        q=np.round(q,2)
+        aux_=np.linspace(q_min,q_max,len(q)*2)
+        aux_=np.round(aux_,2)
+        print(aux_)
+        q=list(q)
+        print("Los q")
+        print(q)
+     
 
-        if q_max<0:
-            cant=cant+(int(q_max)*-1)*2
-        else:
-            cant=cant+int(q_max)*2
-
-        cant=cant+1
-
-        q=np.linspace(float(q_min),float(q_max),cant)
-
-        q_index=index(q)
         #print(q)
         #print(q_index)
         data=np.array(data)
-        l,r,s=Select_Scale(data,scale,q,m,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res))
+        if len(q)<=8: #de esta forma evitamos que se repitan lineas cuando hay menos de 8 q-values
+            lines=list(range(0,len(q)))
+        else:
+            lines=random.sample(range(len(q)),8)
+            lines.sort()
+        print("lines")
+        print(lines)
 
         
-        Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,q_index,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s)
+        l,r,s=Select_Scale(data,scale,q,m,noise,figure,int(scale_min),int(scale_max),int(scale_res),lines)
+
+        
+        Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s,lines)
 
         #self.write_text("Hq: "+str(Hq)+"\n")
         #self.write_text("tq: "+str(tq)+"\n")
@@ -187,17 +195,7 @@ class Application():
                     #data=list(reader)
                     data_r=list(file.read().splitlines())
 
-                #time=[]
-                #print(data_r[0])
-                #print(time_r[0])
-        
                 data=list(map(float,data_r))
-                #time=list(map(float,time_r))
-                #print(data)
-                #print(type(data))
-
-
-
 
         scale_min=self.scale_min_entry.get()
         if scale_min=="":
@@ -207,6 +205,9 @@ class Application():
         if scale_max=="":
             output=output+"Max value in scale not given\n"
         else:
+            print(scale_max)
+            print(len(data))
+            print(len(data)/4)
             if int(scale_max)>len(data)/4:
                 output=output+"Max in value in scale can't be bigger than a quarter of the size of the data\n"
 
@@ -214,16 +215,21 @@ class Application():
         if scale_res=="":
             output=output+"Res value in scale not given\n" 
 
+        q_inc=self.q_inc_entry.get()
+        if q_inc=="":
+            output=output+"q inc value not give\n"
+
         q_min=self.q_min_entry.get()
         if q_min=="":
-            output=output+"q min value in q not given\n"   
+            output=output+"q min value not given\n"   
 
         q_max=self.q_max_entry.get()
         if q_max=="":
-            output=output+"q max value in q not given\n"
+            output=output+"q max value  not given\n"
 
-        q_min=int(q_min)
-        q_max=int(q_max)
+        q_min=float(q_min)
+        q_max=float(q_max)
+        q_inc=float(q_inc)
 
         if q_min>q_max:
             output=output+"q max must be bigger than q min\n"
@@ -238,7 +244,7 @@ class Application():
         if output!="":
             self.write_text(output)
         else:
-            self.prepare_MFDFA(data,float(scale_min),float(scale_max),float(scale_res),q_min,q_max,m,self.noise.get(),self.figure.get())
+            self.prepare_MFDFA(data,float(scale_min),float(scale_max),float(scale_res),q_inc,q_min,q_max,m,self.noise.get(),self.figure.get())
 
 
     def close_window(self):
@@ -302,37 +308,38 @@ class Application():
         self.m_spinbox.grid(row=7,column=1)
 
         # q
-        self.raiz.register(self.reload_q_min_max)
+        #self.raiz.register(self.reload_q_min_max)
 
-        self.q_label=Label(text='q', bg='white')
-        self.q_label.grid(row=9, column=1)
+        self.q_inc_label=Label(text='\u0394q', bg='white',borderwidth=3,relief="sunken")
+        self.q_inc_label.grid(row=9, column=1)
         #self.q,validate='focusout',validatecommand=self.reload_q_min_max())
-        self.q_entry=Entry(self.raiz, bg='white', width=4,validate="focusout",justify='center',validatecommand=self.reload_q_min_max)
-        self.q_entry.grid(row=10,column=1)
+        self.q_inc_entry=Entry(self.raiz, bg='white',width=4,justify='center')#,validate="focusout",validatecommand=self.reload_q_min_max)
+        self.q_inc_entry.insert(0,int(1))
+        self.q_inc_entry.grid(row=10,column=1)
 
         self.q_min_label=Label(text='q min',bg='white',borderwidth=3,relief="sunken")
-        self.q_min_label.grid(row=11,column=0)
+        self.q_min_label.grid(row=9,column=0)
         self.q_min_entry=Entry(self.raiz,bg='white', width=4,state="normal",justify='center')
-        self.q_min_entry.grid(row=12, column=0)
+        self.q_min_entry.grid(row=10, column=0)
         self.q_min_entry.insert(0,int(-5))
         #self.q_min_text.config(state=DISABLED)
         self.q_max_label=Label(text='q max',bg='white',borderwidth=3,relief="sunken")
-        self.q_max_label.grid(row=11,column=2)
+        self.q_max_label.grid(row=9,column=2)
         self.q_max_entry=Entry(self.raiz,bg='white', width=4,state="normal",justify='center')
-        self.q_max_entry.grid(row=12, column=2)
+        self.q_max_entry.grid(row=10, column=2)
         self.q_max_entry.insert(0,int(5))
         
 
         #Cuadro de texto
         self.result_text=Text(self.raiz,padx=10,pady=10,bg='grey90')
         #self.result_text.insert(END,'Results\n--------------------------------------------------------------------------------')
-        self.result_text.grid(row=13, column=0, columnspan=3)
+        self.result_text.grid(row=11, column=0, columnspan=3)
 
         #Pedir archivo
         self.file_label=Label(text='        Select data file   ', bg='white')
-        self.file_label.grid(row=15,column=0,sticky=W)
+        self.file_label.grid(row=12,column=0,sticky=W)
         self.file_button=Button(self.raiz,text='.....',command=self.open_file)
-        self.file_button.grid(row=15, column=0,sticky=E)
+        self.file_button.grid(row=12, column=0,sticky=E)
 
         #Separtator
         #self.separator_label=Label(text='        CSV Separator',bg='white')
@@ -342,16 +349,16 @@ class Application():
 
         #One figure in all<
         self.figure_checkbutton=Checkbutton(self.raiz,text='All in',onvalue=1,offvalue=0,variable=self.figure)
-        self.figure_checkbutton.grid(row=15,column=2,sticky=W)
+        self.figure_checkbutton.grid(row=12,column=2,sticky=W)
 
         #Noise like
      
         self.noise_checkbutton=Checkbutton(self.raiz,text='Noise structure',onvalue=1,offvalue=0,variable=self.noise)
-        self.noise_checkbutton.grid(row=15,column=1)
+        self.noise_checkbutton.grid(row=12,column=1)
 
         #Procesar
         self.start_button=Button(self.raiz, text='Start', command=self.start,height = 1, width = 5)
-        self.start_button.grid(row=15, column=2,sticky=E)
+        self.start_button.grid(row=12, column=2,sticky=E)
 
         #ttk.Button(self.raiz, text='Salir', command=self.raiz.destroy).grid(row=15,column=0)
         #self.tinfo=Text(self.raiz)
@@ -360,8 +367,8 @@ class Application():
         self.raiz.grid_rowconfigure(4, minsize=50)
         self.raiz.grid_rowconfigure(6, minsize=30)
         self.raiz.grid_rowconfigure(8, minsize=20)
+        self.raiz.grid_rowconfigure(10, minsize=50)
         self.raiz.grid_rowconfigure(12, minsize=50)
-        self.raiz.grid_rowconfigure(15, minsize=50)
 
         #self.write_text("First select the time file and then select the data file")
 

@@ -7,21 +7,24 @@ from tkinter.filedialog import asksaveasfile
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.font_manager import FontProperties
 from matplotlib.figure import Figure
+import matplotlib as mpl
+import matplotlib.ticker as ticker
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt_aux
 import scipy.io
 import math
 import csv
 import sys
+import random
+
 
 plt.switch_backend('TkAgg')
-colours=["blue","green","red","cyan","magenta","yellow","black"]
+colours=["blue","green","red","cyan","magenta","yellow","black","purple","aqua","springgreen","gold","silver","mediumblue","hotpink","deeppink","peru","skyblue","firebrick","saddlebrown","tomato","linen","cadetblue","chocolate"]
 
 
 
-def index(q):
+#def index(q):
     #i=0
     #while round(q[i])!=0 and i!=len(q):
     #    i=i+1
@@ -29,15 +32,15 @@ def index(q):
 
     #ind=i
 
-    q_index=[]
+ #   q_index=[]
 
-    for j in range(1,5): ##Change this value(5) to get more q plots
-        q_index.append(j*4)
+  #  for j in range(1,5): ##Change this value(5) to get more q plots
+   #     q_index.append(j*4)
 
-    return q_index
+    #return q_index
 
 
-def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_res):
+def Select_Scale(data,scale,q,m,noise,figure,scale_min,scale_max,scale_res,lines):
     #probar con los arrays de numpy
     if noise=="1":
         data=np.cumsum(data-np.mean(data))
@@ -71,7 +74,7 @@ def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_re
             Idx_start=Idx_stop+1
             Idx_stop=Idx_stop+suma
 
-
+        i=-1
         for nq in range(0,len(q)):
             qRMS[ns]=RMS[ns]**q[nq]
             if q[nq]==0:
@@ -79,13 +82,13 @@ def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_re
             else:
                 Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
 
-        sumaFq=[]
-        for j in range(0,len(Fq[i-1])):
-            sumaFq.append(Fq[i-1][j]+Fq[i+1][j])
+        if i!=-1: # EN caso de que en q no haya un 0
+            sumaFq=[]
+            for j in range(0,len(Fq[i-1])):
+                sumaFq.append(Fq[i-1][j]+Fq[i+1][j])
 
-
-        Fq[i]=[x/2 for x in sumaFq]
-    
+            Fq[i]=[x/2 for x in sumaFq]
+        
 
     for nq in range(0,len(q)):
 
@@ -103,8 +106,14 @@ def Select_Scale(data,scale,q,m,qindex,noise,figure,scale_min,scale_max,scale_re
     #plt.xlabel('scale')
     #plt.ylabel('Fq')
     print("All good")
-    
-    scale_selector=Aux_Window("Select data to analyse",X,Fq,qRegLine,q,qindex,scale)
+
+    print("fq len")
+    print(len(Fq))
+    print("q")
+    print(len(q))
+
+
+    scale_selector=Aux_Window("Select data to analyse",X,Fq,qRegLine,q,scale,lines)
     l=scale_selector.ret_value_left_delimiter()
     r=scale_selector.ret_value_right_delimiter()
     s=scale_selector.ret_value_section()
@@ -210,6 +219,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
     Ch=np.polyfit(X,np.log2(F),1)
     H=Ch[0]
     RegLine=np.polyval(Ch,X)
+    plt.locator_params(nbins=3)
 
     if figure=="1":
         plt.subplot(4,2,2)
@@ -220,8 +230,10 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.plot(X,RegLine,"b-",label='Multifractal time series')
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
-        plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
-        plt.yticks(RegLine,np.round(F,1),rotation=45)
+
+        plt.xticks(X,scale,rotation=50)##Esta es nuestra autentica escala
+
+
 
         plt.title("Overall RMS",loc='right')
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
@@ -250,7 +262,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)    
     return H
 
-def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section):
+def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section,lines):
     #probar con los arrays de numpy
     if noise=="1":
         data=np.cumsum(data-np.mean(data))
@@ -284,7 +296,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
             Idx_start=Idx_stop+1
             Idx_stop=Idx_stop+suma
 
-
+        i=-1
         for nq in range(0,len(q)):
             qRMS[ns]=RMS[ns]**q[nq]
             if q[nq]==0:
@@ -293,12 +305,12 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
             else:
                 Fq[nq].append(np.mean(qRMS[-1])**(1/q[nq]))
 
-        sumaFq=[]
-        for j in range(0,len(Fq[i-1])):
-            sumaFq.append(Fq[i-1][j]+Fq[i+1][j])
+        if i!=-1:
+            sumaFq=[]
+            for j in range(0,len(Fq[i-1])):
+                sumaFq.append(Fq[i-1][j]+Fq[i+1][j])
 
-
-        Fq[i]=[x/2 for x in sumaFq]
+            Fq[i]=[x/2 for x in sumaFq]
 
 
     for nq in range(0,len(q)):
@@ -312,21 +324,20 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
     Y1=[]
     Y2=[]
 
-    
+    for k in range(0,len(q)):
+        Y1.append([])
+        Y1[-1]=np.log2(Fq[k])
+        Y2.append([])
+        Y2[-1]=qRegLine[k]
+
     i=0
     if figure=="1":
         plt.subplot(4,2,4)
         plt.xlabel('scale')
         plt.ylabel('Fq')
-        for k in qindex:
-            Y1.append([])
-            Y1[-1]=np.log2(Fq[k])
-            plt.plot(X,Y1[-1],"o",color=colours[i],label=q[k])
-            Y2.append([])
-            Y2[-1]=qRegLine[k]
-            plt.plot(X,Y2[-1],color=colours[i])
-
-
+        for k in range(0,len(lines)):
+            plt.plot(X,np.log2(Fq[lines[k]]),"o",color=colours[i],label="q="+str(q[lines[k]]))
+            plt.plot(X,qRegLine[lines[k]],color=colours[i])
             i=i+1
 
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
@@ -344,16 +355,11 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
 
         plt.xlabel('scale')
         plt.ylabel('Fq')
-        for k in qindex:
-            Y1.append([])
-            Y1[-1]=np.log2(Fq[k])
-            plt.plot(X,Y1[-1],"o",color=colours[i],label=q[k])
-            Y2.append([])
-            Y2[-1]=qRegLine[k]
-            plt.plot(X,Y2[-1],color=colours[i])
-
-
+        for k in range(0,len(lines)):
+            plt.plot(X,np.log2(Fq[lines[k]]),"o",color=colours[i],label="q="+str(q[lines[k]]))
+            plt.plot(X,qRegLine[lines[k]],color=colours[i])
             i=i+1
+ 
         plt.title("q-order RMS",loc='right')
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
@@ -363,9 +369,9 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
     #Calculo de RMSE
 
     RMSE=[]
-    for i in range(0,len(qindex)):
+    for i in range(0,len(q)):
         aux=[]
-        for j in range(0,len(Y1)):
+        for j in range(0,len(Y1[0])):
             aux.append(math.pow(Y2[i][j]-Y1[i][j],2))
         RMSE.append(math.sqrt(sum(aux)/len(Y1)))
 
@@ -375,16 +381,16 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
         aux1=[]
         aux2=[]
         Y1_m=sum(Y1[i])/len(Y1[i])
-        for j in range(0,len(Y1)):
+        for j in range(0,len(Y1[0])):
             aux2.append(math.pow(Y2[i][j]-Y1_m,2))
             aux1.append(math.pow(Y1[i][j]-Y1_m,2))
         R2.append((sum(aux2)/len(aux2))/(sum(aux1)/len(aux1)))
 
 
     mu=[]
-    for i in qindex:
+    for i in range(0,len(q)):
         mu.append(Hq[i])
-
+    q=np.array(q)
     tq=Hq*q-1
 
     if figure=="1":
@@ -496,8 +502,7 @@ def MFDFA(data,scale,q,m,qindex,Adjustment,noise,figure,scale_min,scale_max,scal
     return  Hq,tq,hq,Dq,Fq,mu,R2,RMSE
 
 
-def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_res,l,r,s):
-
+def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,lines):
 
     if s==-1:
         
@@ -521,11 +526,9 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:r],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,1)
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,1,lines)
 
-        Create_table("Results",q,q_index,mu,R2,RMSE)
-
-
+        #Create_table("Results",q,mu,R2,RMSE)
     else:
 
         if l==-1:
@@ -550,7 +553,7 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:s+1],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0)
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:s+1],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0,lines)
 
    
         if figure=="1":
@@ -571,9 +574,9 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
         if figure=="1":
             plt.figure(num='Section 2')
 
-        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[s:r],q,m,q_index,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0)
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[s:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0,lines)
 
-    plt.show(block=True)
+    plt.show(block=False) 
     plt.show()
     
 
@@ -581,12 +584,12 @@ def start_MFDFA(data,m,scale,q,q_index,noise,figure,scale_min,scale_max,scale_re
     return Hq,tq,hq,Dq,Fq
 
 
-def Create_table(title,q,q_index,mu,R2,RMSE):
-    Result_Table(title,q,q_index,mu,R2,RMSE)
+def Create_table(title,q,mu,R2,RMSE):
+    Result_Table(title,q,mu,R2,RMSE)
 
 class Result_Table():
 
-    def __init__(self,title,q,q_index,mu,R2,RMSE):
+    def __init__(self,title,q,mu,R2,RMSE):
         self.window_table=Toplevel()
         #self.frame=Frame(self.window_table)
         #self.frame.grid(row=0,column=0,columnspan=2,sticky='nsew')
@@ -598,25 +601,26 @@ class Result_Table():
 
         columns_name=('q','\u03BC','R\u00b2','RMSE')
 
-        self.tree=ttk.Treeview(self.window_table,columns=columns_name,show='headings')
+        self.tree=ttk.Treeview(self.window_table,columns=columns_name,show='headings',height=len(q)+1)
         self.tree.grid(row=0,column=0,sticky='nsew')
         for col in columns_name:
             self.tree.heading(col,text=col,anchor='center')
             self.tree.column(col,anchor='center')
 
 
-        for i in range(0,len(q_index)+1):
-            if i==len(q_index):
-                self.tree.insert("","end",values=("Total",0,min(R2),0),tag=i)
+        for i in range(0,len(q)+1):
+            if i==len(q):
+                self.tree.insert("","end",values=("Min R\u00b2","Max RMSE",min(R2),max(RMSE)),tag=i)
             else:
-                self.tree.insert("","end",values=(q[q_index[i]],mu[i],R2[i],RMSE[i]),tag=i)
+                self.tree.insert("","end",values=(q[i],mu[i],R2[i],RMSE[i]),tag=i)
 
-        self.tree.tag_configure(len(q_index),background='grey90')
+        self.tree.tag_configure(len(q),background='grey90')
+        
 
         self.button_txt=Button(self.window_table,text="Save data",command=self.save)
         self.button_txt.grid(row=1,column=0,sticky='nsew')
 
- 
+    
 
 
         self.window_table.grid_columnconfigure(0, weight=1)
@@ -810,7 +814,7 @@ class Aux_Window():
 
 
 
-    def __init__(self,title,X,Fq,qRegLine,q,qindex,scale):
+    def __init__(self,title,X,Fq,qRegLine,q,scale,lines):
         self.left_bool=False
         self.right_bool=False
         self.section_bool=False
@@ -827,6 +831,7 @@ class Aux_Window():
         self.center=int(len(X)/2)
 
         self.window=Toplevel()
+        self.window.grab_set()
         self.window.title(title)
         self.window.protocol('WM_DELETE_WINDOW', self.close_window)
    
@@ -836,18 +841,25 @@ class Aux_Window():
         self.menubar.config(bg='grey90')
         self.menubar.add_command(label='Info',command=self.open_info)
         self.window.config(menu=self.menubar)
+        #self.a.locator_params(nbins=2)
 
         self.f=Figure(dpi=100)
         self.a=self.f.add_subplot(111)
 
         i=0
-        for k in qindex:
-            self.a.plot(X,np.log2(Fq[k]),"o",color=colours[i],label="q="+str(int(q[k])))
-            self.a.plot(X,qRegLine[k],color=colours[i])
-
+        for k in range(0,len(lines)):
+            self.a.plot(X,np.log2(Fq[lines[k]]),"o",color=colours[i],label="q="+str(q[lines[k]]))
+            self.a.plot(X,qRegLine[lines[k]],color=colours[i])
             i=i+1
+
         self.a.set_xticks(X, minor=False)
-        self.a.set_xticklabels(np.linspace(int(min(scale)),int(max(scale)),len(scale)),fontdict=None,minor=False,rotation=45)
+        self.a.set_xticklabels(scale,fontdict=None,minor=False,rotation=45)
+        #self.a.xaxis.set_major_locator(ticker.LinearLocator(7))
+        #majors = ["0", "1", "2", "3", "4", "5"]
+        #self.a.xaxis.set_major_formatter(ticker.FixedFormatter(majors))
+
+
+
 
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
         #a.xticks(X,scale)
@@ -856,11 +868,16 @@ class Aux_Window():
         #fontP = FontProperties()
         #fontP.set_size('small')
         self.a.set_title("q-order RMS",loc='right')
-        self.a.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=True)
+        self.a.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=12, borderaxespad=0, frameon=True)
         #self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
         #a.ion()
         #a.pause(0.001)
-        
+
+       
+
+        self.a.tick_params(axis='x', which='major', labelsize=10)
+        self.a.tick_params(axis='y', which='major', labelsize=10)
+
         self.canvas=FigureCanvasTkAgg(self.f,master=self.window)
         self.canvas.draw()
         self.canvas.get_tk_widget().grid(row=0,column=0,columnspan=3,sticky='nsew')
@@ -875,8 +892,8 @@ class Aux_Window():
         #self.frame_toolbar.grid_columnconfigure(0, weight=1)
         #self.frame_toolbar.grid_rowconfigure(1, weight=1)
 
-        toolbar=NavigationToolbar2Tk(self.canvas,self.frame_toolbar)
-        toolbar.update()
+        self.toolbar=NavigationToolbar2Tk(self.canvas,self.frame_toolbar)
+        self.toolbar.update()
 
 
         self.cid1=self.f.canvas.mpl_connect('button_press_event',self.left_del)
@@ -911,11 +928,7 @@ class Aux_Window():
         self.window.grid_columnconfigure(2, weight=1)
         #self.window.grid_rowconfigure(2, weight=1)
 
-
-
         self.window.mainloop()
-
-    #I don't know how to make it work like the other one, for any reason that doesn't work anymore
 
     def send_data(self):
 
@@ -931,12 +944,16 @@ class Aux_Window():
                     self.f.canvas.mpl_disconnect(self.cid1)
                     self.f.canvas.mpl_disconnect(self.cid2)
                     self.f.canvas.mpl_disconnect(self.cid3)
+                    self.toolbar.destroy()
+                    self.frame_toolbar.destroy
                     self.window.quit()
                     self.window.destroy() 
             else:
                 self.f.canvas.mpl_disconnect(self.cid1)
                 self.f.canvas.mpl_disconnect(self.cid2)
                 self.f.canvas.mpl_disconnect(self.cid3)
+                self.frame_toolbar.destroy
+                self.toolbar.destroy()
                 self.window.quit()
                 self.window.destroy() 
 
@@ -944,6 +961,8 @@ class Aux_Window():
             self.f.canvas.mpl_disconnect(self.cid1)
             self.f.canvas.mpl_disconnect(self.cid2)
             self.f.canvas.mpl_disconnect(self.cid3)
+            self.frame_toolbar.destroy
+            self.toolbar.destroy()
             self.window.quit()
             self.window.destroy()  
 
@@ -951,6 +970,8 @@ class Aux_Window():
         self.f.canvas.mpl_disconnect(self.cid1)
         self.f.canvas.mpl_disconnect(self.cid2)
         self.f.canvas.mpl_disconnect(self.cid3)
+        self.frame_toolbar.destroy
+        self.toolbar.destroy()
         self.window.quit()
         self.window.destroy()  
         sys.exit()

@@ -131,6 +131,7 @@ class Application():
             cant=cant+int(q_max)*2
 
         cant=cant+1
+        print(cant)
 
         q=np.linspace(float(q_min),float(q_max),cant)
 

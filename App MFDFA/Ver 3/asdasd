@@ -1,0 +1,13 @@
+        print("SCALE")
+        print(scale)
+        if len(scale)>70:
+            scale_label=[]
+            i=0
+            for x in scale:
+                if i%2==0:
+                    scale_label.append(x)
+                i+=1
+        else:
+            scale_label=scale
+        print("label")
+        print(scale_label)
