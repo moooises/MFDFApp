@@ -121,7 +121,7 @@ class Application():
         m=int(m)
         exponents=np.linspace(math.log2(int(scale_min)),math.log2(int(scale_max)),int(scale_res))
         scale=np.around(2**exponents,0)
-        print(scale)
+        #print(scale)
         ###Arregalr aqui q
        
         q=np.arange(q_min,q_max+q_inc,q_inc)
@@ -146,17 +146,27 @@ class Application():
         print(lines)
 
         
-        l,r,s=Select_Scale(data,scale,q,m,noise,figure,int(scale_min),int(scale_max),int(scale_res),lines)
+        l,r,s,closed=Select_Scale(data,scale,q,m,noise,figure,int(scale_min),int(scale_max),int(scale_res),lines)
 
-        
-        Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s,lines)
+        if not closed:
+            Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s,lines)
 
-        #self.write_text("Hq: "+str(Hq)+"\n")
-        #self.write_text("tq: "+str(tq)+"\n")
-        #self.write_text("hq: "+str(hq)+"\n")
-        #self.write_text("Dq: "+str(Dq)+"\n")
-        #self.write_text("Fq: "+str(Fq)+"\n")
-
+            self.write_text("Hq: "+str(list(Hq))+"\n")
+            self.write_text("--------------------------------------------------------------------------------\n")
+            self.write_text("tq: "+str(list(tq))+"\n")
+            self.write_text("--------------------------------------------------------------------------------\n")
+            self.write_text("hq: "+str(list(hq))+"\n")
+            self.write_text("--------------------------------------------------------------------------------\n")
+            self.write_text("Dq: "+str(list(Dq))+"\n")
+            self.write_text("--------------------------------------------------------------------------------\n")
+            i=0
+            for x in Fq:
+                self.write_text("Fq["+str(i)+"]: "+str(list(x))+"\n")
+                i+=1
+                self.write_text("################################################################################\n")
+            self.write_text("--------------------------------------------------------------------------------\n")
+            plt.show(block=False) 
+            plt.show()
 
 
     def start(self):

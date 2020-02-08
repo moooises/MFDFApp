@@ -117,8 +117,9 @@ def Select_Scale(data,scale,q,m,noise,figure,scale_min,scale_max,scale_res,lines
     l=scale_selector.ret_value_left_delimiter()
     r=scale_selector.ret_value_right_delimiter()
     s=scale_selector.ret_value_section()
+    c=scale_selector.closed()
 
-    return l,r,s
+    return l,r,s,c
 
 def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section):
 
@@ -154,6 +155,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
             plt.rcParams["axes.titlesize"] = 8
             plt.title("Time serie")
             plt.legend()
+
     else:
 
 
@@ -184,7 +186,6 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
                 plt.legend()
         else:
             data=np.cumsum(data-np.mean(data))
-
 
 
 
@@ -231,12 +232,30 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
 
-        plt.xticks(X,scale,rotation=50)##Esta es nuestra autentica escala
+        plt.xticks(X,scale,fontsize=9,rotation=45)##Esta es nuestra autentica escala
+        F_round=np.round(F,1)
+        plt.yticks(RegLine,F_round)
 
+        a=plt.gca()
 
+        if len(scale)>=40:
+            step=int((len(scale)/40))+1
+            i=0
+            for n, label in enumerate(a.xaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
+
+        if len(F_round)>=8:
+            step=int((len(F_round)/8))+1
+            i=0
+            for n, label in enumerate(a.yaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
 
         plt.title("Overall RMS",loc='right')
-        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
+        plt.legend(loc='lower left', ncol=6,bbox_to_anchor= (0.0, 1.01), borderaxespad=0, frameon=False)
     else:
         plt.figure(2)
 
@@ -256,10 +275,28 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.plot(X,np.log2(F),"o",color="blue",label="slope H = "+str(H))
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))#####
         plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
-        plt.yticks(RegLine,np.round(F,1),rotation=45)
-
+        F_round=np.round(F,1)
+        plt.yticks(RegLine,F_round)
         plt.title("Overall RMS",loc='right')
-        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)    
+        plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False) 
+
+        a=plt.gca()
+        if len(scale)>=80:
+            step=int((len(scale)/80))+1
+            i=0
+            for n, label in enumerate(a.xaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
+
+        if len(F_round)>=40:
+            step=int((len(F_round)/40))+1
+            i=0
+            for n, label in enumerate(a.yaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
+   
     return H
 
 def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section,lines):
@@ -341,8 +378,18 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
             i=i+1
 
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))
-        plt.xticks(X,scale,rotation=45)
+        plt.xticks(X,scale,fontsize=9,rotation=45)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
+
+        a=plt.gca()
+        if len(scale)>=40:
+            step=int((len(scale)/40))+1
+            i=0
+            for n, label in enumerate(a.xaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
+
         plt.title("q-order RMS",loc='right')
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
 
@@ -359,13 +406,21 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
             plt.plot(X,np.log2(Fq[lines[k]]),"o",color=colours[i],label="q="+str(q[lines[k]]))
             plt.plot(X,qRegLine[lines[k]],color=colours[i])
             i=i+1
- 
-        plt.title("q-order RMS",loc='right')
+
+
+
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
         plt.xticks(X,scale,rotation=45)
         #plt.yticks(,np.round(np.linspace(-1,32,20)))
-
+        a=plt.gca()
+        if len(scale)>=80:
+            step=int((len(scale)/80))+1
+            i=0
+            for n, label in enumerate(a.xaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
     #Calculo de RMSE
 
     RMSE=[]
@@ -449,8 +504,8 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
         plt.ylabel('Hq')
         plt.plot(q,Hq,color="blue")
         
-        plt.subplots_adjust(wspace=0.2,hspace=0.9)
-
+        plt.subplots_adjust(wspace=0.2,hspace=1.3)
+        #plt.tight_layout(h_pad=0.9, w_pad=0.2 )
         
     else:
 
@@ -528,7 +583,9 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
 
         Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,1,lines)
 
+        
         #Create_table("Results",q,mu,R2,RMSE)
+
     else:
 
         if l==-1:
@@ -575,12 +632,7 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
             plt.figure(num='Section 2')
 
         Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[s:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0,lines)
-
-    plt.show(block=False) 
-    plt.show()
     
-
-
     return Hq,tq,hq,Dq,Fq
 
 
@@ -822,6 +874,7 @@ class Aux_Window():
         self.section_index=-1
         self.left_index=-1
         self.right_index=-1
+        self.section_closed=False
 
         self.section_pre=-1
         self.left_pre=-1
@@ -852,23 +905,27 @@ class Aux_Window():
             self.a.plot(X,qRegLine[lines[k]],color=colours[i])
             i=i+1
 
+        print("X")
+        print(X)
+        print("scale")
+        print(scale)
+  
         self.a.set_xticks(X, minor=False)
         self.a.set_xticklabels(scale,fontdict=None,minor=False,rotation=45)
-        #self.a.xaxis.set_major_locator(ticker.LinearLocator(7))
-        #majors = ["0", "1", "2", "3", "4", "5"]
-        #self.a.xaxis.set_major_formatter(ticker.FixedFormatter(majors))
+        #self.a.locator_params(tight=True,nbins=4)
+        if len(scale)>=80:
+            step=int((len(scale)/80))+1
+            i=0
+            for n, label in enumerate(self.a.xaxis.get_ticklabels()):
+                if i % step != 0:
+                    label.set_visible(False)
+                i+=1
 
-
-
-
-        #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
-        #a.xticks(X,scale)
-        #plt.yticks(,np.round(np.linspace(-1,32,20)))
 
         #fontP = FontProperties()
         #fontP.set_size('small')
         self.a.set_title("q-order RMS",loc='right')
-        self.a.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=12, borderaxespad=0, frameon=True)
+        self.a.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=True)
         #self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.00), shadow=True, ncol=4)
         #a.ion()
         #a.pause(0.001)
@@ -973,8 +1030,8 @@ class Aux_Window():
         self.frame_toolbar.destroy
         self.toolbar.destroy()
         self.window.quit()
-        self.window.destroy()  
-        sys.exit()
+        self.window.destroy()
+        self.section_closed=True  
 
 
     def ret_value_left_delimiter(self):
@@ -985,5 +1042,8 @@ class Aux_Window():
 
     def ret_value_section(self):
         return self.section_index
+
+    def closed(self):
+        return self.section_closed
 
     
