@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk
+#from tkinter import ttk
 from tkinter.filedialog import askopenfile
 from tkinter.filedialog import askopenfilename
 from MFDFA_algorithm import start_MFDFA, Select_Scale, MFDFA, DFA
@@ -115,9 +115,7 @@ class Application():
 
 
 
-    def prepare_MFDFA(self,data,scale_min,scale_max,scale_res,q_inc,q_min,q_max,m,noise,figure):
-        aux=""
-
+    def prepare_MFDFA(self,data,scale_min,scale_max,scale_res,q_inc,q_min,q_max,m,noise,figure,title):
         m=int(m)
         exponents=np.linspace(math.log2(int(scale_min)),math.log2(int(scale_max)),int(scale_res))
         scale=np.around(2**exponents,0)
@@ -149,28 +147,63 @@ class Application():
         l,r,s,closed=Select_Scale(data,scale,q,m,noise,figure,int(scale_min),int(scale_max),int(scale_res),lines)
 
         if not closed:
-            Hq,tq,hq,Dq,Fq=start_MFDFA(data,int(m),scale,q,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s,lines)
+            Hq,tq,hq,Dq,Fq,Hq2,tq2,hq2,Dq2,Fq2=start_MFDFA(data,int(m),scale,q,noise,figure,int(scale_min),int(scale_max),int(scale_res),l,r,s,lines,title)
 
-            self.write_text("Hq: "+str(list(Hq))+"\n")
-            self.write_text("--------------------------------------------------------------------------------\n")
-            self.write_text("tq: "+str(list(tq))+"\n")
-            self.write_text("--------------------------------------------------------------------------------\n")
-            self.write_text("hq: "+str(list(hq))+"\n")
-            self.write_text("--------------------------------------------------------------------------------\n")
-            self.write_text("Dq: "+str(list(Dq))+"\n")
-            self.write_text("--------------------------------------------------------------------------------\n")
-            i=0
-            for x in Fq:
-                self.write_text("Fq["+str(i)+"]: "+str(list(x))+"\n")
-                i+=1
-                self.write_text("################################################################################\n")
-            self.write_text("--------------------------------------------------------------------------------\n")
+            if Hq2:
+                self.write_text("LEFT SECTION\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("Hq: "+str(list(Hq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("tq: "+str(list(tq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("hq: "+str(list(hq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("Dq: "+str(list(Dq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                i=0
+                for x in Fq:
+                    self.write_text("Fq["+str(i)+"]: "+str(list(x))+"\n")
+                    i+=1
+                    self.write_text("################################################################################\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("RIGHT SECTION\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("Hq: "+str(list(Hq2))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("tq: "+str(list(tq2))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("hq: "+str(list(hq2))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("Dq: "+str(list(Dq2))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                i=0
+                for x in Fq2:
+                    self.write_text("Fq["+str(i)+"]: "+str(list(x))+"\n")
+                    i+=1
+                    self.write_text("################################################################################\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+            else:
+                self.write_text("Hq: "+str(list(Hq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("tq: "+str(list(tq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("hq: "+str(list(hq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                self.write_text("Dq: "+str(list(Dq))+"\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+                i=0
+                for x in Fq:
+                    self.write_text("Fq["+str(i)+"]: "+str(list(x))+"\n")
+                    i+=1
+                    self.write_text("################################################################################\n")
+                self.write_text("--------------------------------------------------------------------------------\n")
+
             plt.show(block=False) 
             plt.show()
 
 
     def start(self):
-        plt.close('all')
+        #plt.close('all')
 
         output=""
 
@@ -215,9 +248,6 @@ class Application():
         if scale_max=="":
             output=output+"Max value in scale not given\n"
         else:
-            print(scale_max)
-            print(len(data))
-            print(len(data)/4)
             if int(scale_max)>len(data)/4:
                 output=output+"Max in value in scale can't be bigger than a quarter of the size of the data\n"
 
@@ -250,11 +280,13 @@ class Application():
         #separator=self.separator_entry.get()
         m=self.m_spinbox.get()
         #print(type(m))
-        f=self.figure.get()
+        #f=self.figure.get()
         if output!="":
             self.write_text(output)
         else:
-            self.prepare_MFDFA(data,float(scale_min),float(scale_max),float(scale_res),q_inc,q_min,q_max,m,self.noise.get(),self.figure.get())
+            title_aux=path_file.split('/')
+            title=title_aux[-1].split('.')
+            self.prepare_MFDFA(data,float(scale_min),float(scale_max),float(scale_res),q_inc,q_min,q_max,m,self.noise.get(),self.figure.get(),title[0])
 
 
     def close_window(self):

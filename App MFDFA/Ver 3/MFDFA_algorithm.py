@@ -18,11 +18,9 @@ import csv
 import sys
 import random
 
-
+f=False
 plt.switch_backend('TkAgg')
 colours=["blue","green","red","cyan","magenta","yellow","black","purple","aqua","springgreen","gold","silver","mediumblue","hotpink","deeppink","peru","skyblue","firebrick","saddlebrown","tomato","linen","cadetblue","chocolate"]
-
-
 
 #def index(q):
     #i=0
@@ -121,7 +119,7 @@ def Select_Scale(data,scale,q,m,noise,figure,scale_min,scale_max,scale_res,lines
 
     return l,r,s,c
 
-def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section):
+def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section,title):
 
     segments=[]
     F=[]
@@ -160,7 +158,12 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
 
 
         if ind_figure==1:
-            plt.figure(1)
+
+            if plt.fignum_exists(title+" Figure "+str(1)):
+                plt.close(title+" Figure "+str(1))
+
+            plt.figure(num=title+" Figure "+str(1))
+
         
             if noise=="1":
                 #if one_section==0:
@@ -257,16 +260,26 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.title("Overall RMS",loc='right')
         plt.legend(loc='lower left', ncol=6,bbox_to_anchor= (0.0, 1.01), borderaxespad=0, frameon=False)
     else:
-        plt.figure(2)
+
+        if plt.fignum_exists(title+" Figure "+str(2)) and ind_figure==1:
+            plt.close(title+" Figure "+str(2))
+
+
+        plt.figure(num=title+" Figure "+str(2))
 
         #plt.xticks(np.arange(min(scale),max(scale)+1,5))
         #plt.yticks(np.arange(min(np.round(np.linspace(1,32,19))),max(np.round(np.linspace(1,32,19)))+1,5))
 
         #plt.gca().locator_params(axis='both',nbins=2)
 
+        title_Section=""
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                                                  Section 2', fontsize=16)
+            #plt.suptitle('Section 1                                                                   Section 2', fontsize=16)
+            if ind_figure==1:
+                title_Section=" (Left Section)"
+            else:
+                title_Section=" (Right Section)"
 
         plt.xlabel('Scale')
         plt.ylabel('Overall RMS')
@@ -277,7 +290,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
         plt.xticks(X,scale,rotation=45)##Esta es nuestra autentica escala
         F_round=np.round(F,1)
         plt.yticks(RegLine,F_round)
-        plt.title("Overall RMS",loc='right')
+        plt.title("Overall RMS"+title_Section,loc='right')
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False) 
 
         a=plt.gca()
@@ -299,7 +312,7 @@ def DFA(data,scale,m,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_s
    
     return H
 
-def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section,lines):
+def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,ind_figure,one_section,lines,title):
     #probar con los arrays de numpy
     if noise=="1":
         data=np.cumsum(data-np.mean(data))
@@ -394,11 +407,20 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
 
     else:
-        plt.figure(4)
+
+        if plt.fignum_exists(title+" Figure "+str(4)) and ind_figure==1:
+            plt.close(title+" Figure "+str(4))
+
+        plt.figure(num=title+" Figure "+str(4))
+        title_Section=""
+
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                                                  Section 2', fontsize=16)
-
+            #plt.suptitle('Section 1                                                  Section 2', fontsize=16)
+            if ind_figure==1:
+                title_Section=" (Left Section)"
+            else:
+                title_Section=" (Right Section)"
 
         plt.xlabel('scale')
         plt.ylabel('Fq')
@@ -408,7 +430,7 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
             i=i+1
 
 
-
+        plt.title("q-order RMS"+title_Section,loc='right')
         plt.legend(loc='lower left', bbox_to_anchor= (0.0, 1.01), ncol=4, borderaxespad=0, frameon=False)
         #plt.xticks(X,np.linspace(scale_min,scale_max,scale_res))####
         plt.xticks(X,scale,rotation=45)
@@ -457,14 +479,18 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
         plt.ylabel('tq')
         plt.plot(q,tq,color="blue")
     else:
-        plt.figure(7)
+
+        if plt.fignum_exists(title+" Figure "+str(7)) and ind_figure==1:
+            plt.close(title+" Figure "+str(7))
+
+        plt.figure(num=title+" Figure "+str(7))
+
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                          Section 2', fontsize=16)
-
+            #plt.suptitle('Section 1                          Section 2', fontsize=16)
 
         plt.rcParams["axes.titlesize"] = 8
-        plt.title("Max Exponent tq")
+        plt.title("Max Exponent tq"+title_Section)
         plt.xlabel('q-order')
         plt.ylabel('tq')
         plt.plot(q,tq,color="blue")   
@@ -499,7 +525,7 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
         plt.subplot(4,2,3)
 
         plt.rcParams["axes.titlesize"] = 8
-        plt.title("Hurst exponent in each q-order",)
+        plt.title("Hurst exponent in each q-order")
         plt.xlabel('q-order')
         plt.ylabel('Hq')
         plt.plot(q,Hq,color="blue")
@@ -509,46 +535,61 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
         
     else:
 
-        plt.figure(5)
+        if plt.fignum_exists(title+" Figure "+str(5)) and ind_figure==1:
+            plt.close(title+" Figure "+str(5))
+
+        plt.figure(num=title+" Figure "+str(5))
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                                                  Section 2', fontsize=16)
-
+            #plt.suptitle('Section 1                                                  Section 2', fontsize=16)
+            if ind_figure==1:
+                title_Section=" (Left Section)"
+            else:
+                title_Section=" (Right Section"
 
         plt.xlabel('q-order')
         plt.ylabel('hq')
+        plt.title("Tangent slope of tq"+title_Section)
         plt.plot(q[0:-1],hq,color="blue")
 
-        plt.figure(6)
+        if plt.fignum_exists(title+" Figure "+str(6)) and ind_figure==1:
+            plt.close(title+" Figure "+str(6))
+
+
+        plt.figure(num=title+" Figure "+str(6))
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                                                  Section 2', fontsize=16)
-
+            #plt.suptitle('Section 1                                                  Section 2', fontsize=16)
 
         plt.xlabel('q-order')
         plt.ylabel('Dq')
+        plt.title('Singularity Dimension'+title_Section)
         plt.plot(q[0:-1],Dq,color="blue")
 
-        plt.figure(8)
+        if plt.fignum_exists(title+" Figure "+str(8)) and ind_figure==1:
+            plt.close(title+" Figure "+str(8))
+
+        plt.figure(num=title+" Figure "+str(8))
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                                                  Section 2', fontsize=16)
-
+            #plt.suptitle('Section 1                                                  Section 2', fontsize=16)
 
         plt.rcParams["axes.titlesize"] = 8
-        plt.title("Multifractal spectrum of Dq and hq")
+        plt.title("Multifractal spectrum of Dq and hq"+title_Section)
         plt.xlabel('hq')
         plt.ylabel('Dq')
         plt.plot(hq,Dq,color="blue")
 
-        plt.figure(3)
+        if plt.fignum_exists(title+" Figure "+str(3)) and ind_figure==1:
+            plt.close(title+" Figure "+str(3))
+
+        plt.figure(num=title+" Figure "+str(3))
         if one_section==0:
             plt.subplot(1,2,ind_figure)
-            plt.suptitle('Section 1                                                  Section 2', fontsize=16)
-
+            #plt.suptitle('Section 1                                                  Section 2', fontsize=16)
 
         plt.rcParams["axes.titlesize"] = 8
-        plt.title("Hurst exponent in each q-order",)
+        plt.title("Hurst exponent in each q-order"+title_Section,)
         plt.xlabel('q-order')
         plt.ylabel('Hq')
         plt.plot(q,Hq,color="blue")
@@ -557,7 +598,17 @@ def MFDFA(data,scale,q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,i
     return  Hq,tq,hq,Dq,Fq,mu,R2,RMSE
 
 
-def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,lines):
+def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,lines,title):
+    global table
+    global table1,table2
+    global f
+
+    Hq2=[]
+    tq2=[]
+    hq2=[]
+    Dq2=[]
+    Fq2=[]
+
 
     if s==-1:
         
@@ -568,8 +619,13 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
         else:
             r+=1
         
+        if plt.fignum_exists(title):
+            plt.close(title)
 
-        H=DFA(data,scale[l:r],m,noise,figure,scale_min,scale_max,scale_res,1,1)
+        if figure=="1":
+            plt.figure(num=title)
+
+        H=DFA(data,scale[l:r],m,noise,figure,scale_min,scale_max,scale_res,1,1,title)
      
         Adjustment=0
         if H<0.2:
@@ -581,10 +637,13 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,1,lines)
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,1,lines,title)
 
-        
-        #Create_table("Results",q,mu,R2,RMSE)
+        table=Result_Table(title+" Results",q,mu,R2,RMSE)
+
+        if f:
+            table.close_window()
+        f=True
 
     else:
 
@@ -595,10 +654,14 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
         else:
             r+=1
 
-        if figure=="1":
-            plt.figure(num='Section 1')
+        if plt.fignum_exists(title+' Left Section'):
+            plt.close(title+' Left Section')
 
-        H=DFA(data,scale[l:s+1],m,noise,figure,scale_min,scale_max,scale_res,1,0)
+        if figure=="1":
+            plt.figure(num=title+' Left Section')
+            #fig.canvas.set_window_title(title)
+
+        H=DFA(data,scale[l:s+1],m,noise,figure,scale_min,scale_max,scale_res,1,0,title)
 
         Adjustment=0
         if H<0.2:
@@ -610,13 +673,17 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
                 if H>1.8:
                     Adjustment+=2
 
-        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:s+1],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0,lines)
-
+        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[l:s+1],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,1,0,lines,title)
+        
+        if plt.fignum_exists(title+' Right Section'):
+            plt.close(title+' Right Section')
    
         if figure=="1":
-            plt.figure(num='Section 2')
+            plt.figure(num=title+' Right Section')
+            #fig.canvas.set_window_title(title+" section 2")
 
-        H=DFA(data,scale[s:r],m,noise,figure,scale_min,scale_max,scale_res,2,0)
+
+        H=DFA(data,scale[s:r],m,noise,figure,scale_min,scale_max,scale_res,2,0,title)
 
         Adjustment=0
         if H<0.2:
@@ -628,16 +695,23 @@ def start_MFDFA(data,m,scale,q,noise,figure,scale_min,scale_max,scale_res,l,r,s,
                 if H>1.8:
                     Adjustment+=2
 
-        if figure=="1":
-            plt.figure(num='Section 2')
+        #if figure=="1":
+        #    plt.figure(num='Section 2')
 
-        Hq,tq,hq,Dq,Fq,mu,R2,RMSE=MFDFA(data,scale[s:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0,lines)
-    
-    return Hq,tq,hq,Dq,Fq
+        Hq2,tq2,hq2,Dq2,Fq2,mu2,R22,RMSE2=MFDFA(data,scale[s:r],q,m,Adjustment,noise,figure,scale_min,scale_max,scale_res,2,0,lines,title)
+
+        table1=Result_Table(title+" Left Section Results",q,mu,R2,RMSE)
+        table2=Result_Table(title+" Right Section Results",q,mu2,R22,RMSE2)
+
+        if f:
+            table1.close_window()
+            table2.close_window()
+        f=True
+
+    return Hq,tq,hq,Dq,Fq,Hq2,tq2,hq2,Dq2,Fq2
 
 
-def Create_table(title,q,mu,R2,RMSE):
-    Result_Table(title,q,mu,R2,RMSE)
+   
 
 class Result_Table():
 
@@ -645,7 +719,7 @@ class Result_Table():
         self.window_table=Toplevel()
         #self.frame=Frame(self.window_table)
         #self.frame.grid(row=0,column=0,columnspan=2,sticky='nsew')
-        self.window_table.resizable(width=True,height=True)
+        self.window_table.resizable(width=False,height=False)
         self.window_table.title(title)
 
         self.window_table.protocol('WM_DELETE_WINDOW', self.close_window)
@@ -653,7 +727,7 @@ class Result_Table():
 
         columns_name=('q','\u03BC','R\u00b2','RMSE')
 
-        self.tree=ttk.Treeview(self.window_table,columns=columns_name,show='headings',height=len(q)+1)
+        self.tree=ttk.Treeview(self.window_table,columns=columns_name,show='headings',height=len(q)+1)#ttk
         self.tree.grid(row=0,column=0,sticky='nsew')
         for col in columns_name:
             self.tree.heading(col,text=col,anchor='center')
@@ -679,6 +753,8 @@ class Result_Table():
         self.window_table.grid_rowconfigure(0, weight=1)
         self.window_table.grid_columnconfigure(1, weight=1)
 
+        style = ttk.Style()
+        style.configure("Treeview.column", borderwidth=20)
 
 
         self.window_table.update()
@@ -701,6 +777,9 @@ class Result_Table():
     def close_window(self):
         self.window_table.destroy()  
 
+    def get_toplevel(self):
+        return self.window_table
+
 
 
 
@@ -710,141 +789,168 @@ class Aux_Window():
 
         r=max
         l=min
-        distance1=math.sqrt(pow(data-X[center],2))
-        i=0
-        while l<r and i<10000:
+        
+        if data!=None:
 
-            c1=int((center+l)/2)
-            c2=int((r+center)/2)
+            #distance1=math.sqrt(pow(data-X[center],2))
+            i=0
+            while l<r and i<10000:
+
+                c1=int((center+l)/2)
+                c2=int((r+center)/2)
 
 
-            d1=math.sqrt(pow(data-X[c1],2))
-            d2=math.sqrt(pow(data-X[c2],2))
+                d1=math.sqrt(pow(data-X[c1],2))
+                d2=math.sqrt(pow(data-X[c2],2))
 
 
-            if d1<d2:
-                distance2=d1
-                r=center
-                center=c1
-                
+                if d1<d2:
+                    distance2=d1
+                    r=center
+                    center=c1
+                    
 
-         
-                
-            else:
-                distance2=d2    
-                l=center
-                center=c2
+            
+                    
+                else:
+                    distance2=d2    
+                    l=center
+                    center=c2
 
-            #if distance1<distance2:
-                #p=center
-                
-            distance1=distance2
-            i=i+1
+                #if distance1<distance2:
+                    #p=center
+                    
+                #distance1=distance2
+                i=i+1
 
-        return center,X[center]
+            return center,X[center]
+        else:
+            return -1,-1
 
     
     def open_info(self):
-        self.info_active=True
-        self.raiz_info=Toplevel()
-        self.raiz_info.title('Info')
-        self.info_text=Text(self.raiz_info)
-        self.info_text.insert('1.0','Information about input parameters\n')
-        self.info_text.insert(END,'\n\nDelimiters:\nThey are use to select the range of data to analyse.\nThe left select the left interval and the right the right interval. The range   selected is the one that is between these two delimiters.')
-        self.info_text.insert(END,'\nThe section delimiter select the limit between the two section of the data.     Each section will be analyze separetly.\n\nThis deceisions can be made observing the figure.') 
-        self.info_text.insert(END,"\nIn case you want just one section check the one section mark")
-        self.info_text.configure(state=DISABLED)
+        if not self.info_active:
+            self.info_active=True
+            self.raiz_info=Toplevel()
+            self.raiz_info.title('Info')
+            info_text=Text(self.raiz_info)
+            info_text.insert('1.0','Information about input parameters\n')
+            info_text.insert(END,'\n\nDelimiters:\nThey are use to select the range of data to analyse.\nThe left select the left interval and the right the right interval. The range   selected is the one that is between these two delimiters.')
+            info_text.insert(END,'\nThe section delimiter select the limit between the two section of the data.     Each section will be analyze separetly.\n\nThis deceisions can be made observing the figure.') 
+            info_text.insert(END,"\nIn case you want just one section check the one section mark")
+            info_text.configure(state=DISABLED)
+            info_text.grid(row=0,column=0,columnspan=3)
+            #info_text.pack(side=TOP,fill=BOTH,expand=1)
 
-        self.info_text.pack(side=TOP,fill=BOTH,expand=1)
-        self.info_button=Button(self.raiz_info,text='Close',command=self.close_info)
-        self.info_button.pack(side=BOTTOM)
-        self.raiz_info.geometry('646x230')
-        self.raiz_info.resizable(width=False,height=False)
+            canvas=Canvas(self.raiz_info,width=400, height=50)
+            canvas.create_rectangle(50, 10, 130, 80,outline="#fb0", fill="#fb0")
+            canvas.create_rectangle(160, 10, 240, 80,outline="#f50", fill="#f50")
+            canvas.create_rectangle(270, 10, 350, 80,outline="#05f", fill="#05f")
+            canvas.create_text(30,100,text="Left")
+            canvas.grid(row=1,column=0)
 
 
-        #self.raiz_info.update()
-        #print(self.raiz_info.winfo_geometry())
-        self.raiz_info.protocol('WM_DELETE_WINDOW', self.close_info)
-        self.raiz_info.mainloop()
+            #canvas.pack(side=BOTTOM, fill=BOTH,expand=1)
+            
+
+            info_button=Button(self.raiz_info,text='Close',command=self.close_info)
+            info_button.grid(row=2,column=0)
+            #info_button.pack(side=BOTTOM)
+            self.raiz_info.geometry('480x550')
+            self.raiz_info.resizable(width=False,height=False)
+
+            self.raiz_info.grid_rowconfigure(1, minsize=100)
+
+            #self.raiz_info.update()
+            #print(self.raiz_info.winfo_geometry())
+            self.raiz_info.protocol('WM_DELETE_WINDOW', self.close_info)
+            self.raiz_info.mainloop()
 
 
     def close_info(self):
         self.raiz_info.destroy()
+        self.info_active=False
 
 
-    def left_del(self,event):
+    def section(self,event):
         if event.button==1 and not self.section_var.get():
 
             self.left_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
-    
-            if self.left_bool:
-                i=-1
-                while self.a.lines[i].get_label()!="left":
-                    i-=1
-                self.a.lines[i].remove()
+            
+            if p>=0:
 
-            if self.left_pre!=p:
-                self.line_left=self.a.axvline(x=p,color="red",label="left")
-                self.left_pre=p
-                self.left_bool=True
-            else:
-                self.left_bool=False
-                self.left_pre=-1
+                if self.left_bool:
+                    i=-1
+                    while self.a.lines[i].get_label()!="left":
+                        i-=1
+                    self.a.lines[i].remove()
 
-            #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-            #        ('double' if event.dblclick else 'single', event.button,
-            #        event.x, event.y, event.xdata, event.ydata))
-            self.canvas.draw()
+                if self.left_pre!=p:
+                    self.line_left=self.a.axvline(x=p,color="red",label="left")
+                    self.left_pre=p
+                    self.left_bool=True
+                else:
+                    self.left_bool=False
+                    self.left_pre=-1
 
-    def right_del(self,event):
-        if event.button==3 and not self.section_var.get():
+                #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+                #        ('double' if event.dblclick else 'single', event.button,
+                #        event.x, event.y, event.xdata, event.ydata))
+                self.canvas.draw()
 
-            self.right_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
-
-            if self.right_bool:
-                i=-1
-                while self.a.lines[i].get_label()!="right":
-                    i-=1
-                self.a.lines[i].remove()
-
-            if self.right_pre!=p:
-                self.line_right=self.a.axvline(x=p,color="blue",label="right")
-                self.right_pre=p
-                self.right_bool=True
-            else:
-                self.right_bool=False
-                self.right_pre=-1
-
-            #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-            #        ('double' if event.dblclick else 'single', event.button,
-            #        event.x, event.y, event.xdata, event.ydata))
-            self.canvas.draw()
-
-    def section(self,event):
-        if event.button==2 or self.section_var.get():
+        elif event.button==2 or self.section_var.get():
 
             self.section_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
 
-            if self.section_bool:
-                i=-1
-                while self.a.lines[i].get_label()!="section":
-                    i-=1
-                self.a.lines[i].remove()
+            if p>=0:
 
-            if self.section_pre!=p:
-                self.line_section=self.a.axvline(x=p,color="green",label="section")
-                self.section_pre=p
-                self.section_bool=True
-            else:
-                self.section_bool=False
-                self.section_pre=-1
+                if self.section_bool:
+                    i=-1
+                    while self.a.lines[i].get_label()!="section":
+                        i-=1
+                    self.a.lines[i].remove()
+
+                if self.section_pre!=p:
+                    self.line_section=self.a.axvline(x=p,color="green",label="section")
+                    self.section_pre=p
+                    self.section_bool=True
+                else:
+                    self.section_bool=False
+                    self.section_pre=-1
 
 
-            #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
-            #        ('double' if event.dblclick else 'single', event.button,
-            #        event.x, event.y, event.xdata, event.ydata))
-            self.canvas.draw()
+                #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+                #        ('double' if event.dblclick else 'single', event.button,
+                #        event.x, event.y, event.xdata, event.ydata))
+                self.canvas.draw()
     
+        elif event.button==3 and not self.section_var.get():
+
+            self.right_index,p=self.search_point(event.xdata,self.x_Axis,0,len(self.x_Axis),self.center)
+
+            if p>=0:
+
+                if self.right_bool:
+                    i=-1
+                    while self.a.lines[i].get_label()!="right":
+                        i-=1
+                    self.a.lines[i].remove()
+
+                if self.right_pre!=p:
+                    self.line_right=self.a.axvline(x=p,color="blue",label="right")
+                    self.right_pre=p
+                    self.right_bool=True
+                else:
+                    self.right_bool=False
+                    self.right_pre=-1
+
+                #print('%s click: button=%d, x=%d, y=%d, xdata=%f, ydata=%f' %
+                #        ('double' if event.dblclick else 'single', event.button,
+                #        event.x, event.y, event.xdata, event.ydata))
+                self.canvas.draw()
+
+
+
     def reset_line(self):
         if self.left_bool:
             self.a.lines[-1].remove()
@@ -879,6 +985,8 @@ class Aux_Window():
         self.section_pre=-1
         self.left_pre=-1
         self.right_pre=-1
+
+        self.info_active=False
 
         self.x_Axis=X#needed for axvline
         self.center=int(len(X)/2)
@@ -953,9 +1061,9 @@ class Aux_Window():
         self.toolbar.update()
 
 
-        self.cid1=self.f.canvas.mpl_connect('button_press_event',self.left_del)
-        self.cid2=self.f.canvas.mpl_connect('button_press_event',self.right_del)
-        self.cid3=self.f.canvas.mpl_connect('button_press_event',self.section)
+        #self.cid1=self.f.canvas.mpl_connect('button_press_event',self.left_del)
+        #self.cid2=self.f.canvas.mpl_connect('button_press_event',self.right_del)
+        self.cid=self.f.canvas.mpl_connect('button_press_event',self.section)
 
         self.reset_button=Button(self.window,text="Reset Values",command=self.reset_line)
         self.reset_button.grid(row=2,column=1,sticky='nsew')
@@ -991,44 +1099,36 @@ class Aux_Window():
 
         if self.left_index!=-1 and self.right_index!=-1:
             if self.right_index<=self.left_index:
-                messagebox.showwarning("Warning", "Right delimiter can't be equal or lower than left delimiter")
+                messagebox.showwarning("Warning", "Right delimiter can't be equal or lower than left delimiter",parent=self.window)
             elif self.section_index!=-1:
                 if self.right_index<self.section_index:
-                    messagebox.showwarning("Warning", "Right delimiter can't be lower than section delimiter")
+                    messagebox.showwarning("Warning", "Right delimiter can't be lower than section delimiter",parent=self.window)
                 elif self.left_index>=self.section_index:
-                    messagebox.showwarning("Warning", "Left delimiter can't be equal or greater than section delimiter")
+                    messagebox.showwarning("Warning", "Left delimiter can't be equal or greater than section delimiter",parent=self.window)
                 else:
-                    self.f.canvas.mpl_disconnect(self.cid1)
-                    self.f.canvas.mpl_disconnect(self.cid2)
-                    self.f.canvas.mpl_disconnect(self.cid3)
-                    self.toolbar.destroy()
-                    self.frame_toolbar.destroy
+                    self.f.canvas.mpl_disconnect(self.cid)
+                   #self.toolbar.destroy()
+                   #self.frame_toolbar.destroy
                     self.window.quit()
                     self.window.destroy() 
             else:
-                self.f.canvas.mpl_disconnect(self.cid1)
-                self.f.canvas.mpl_disconnect(self.cid2)
-                self.f.canvas.mpl_disconnect(self.cid3)
-                self.frame_toolbar.destroy
-                self.toolbar.destroy()
+                self.f.canvas.mpl_disconnect(self.cid)
+                #self.frame_toolbar.destroy
+                #self.toolbar.destroy()
                 self.window.quit()
                 self.window.destroy() 
 
         else:
-            self.f.canvas.mpl_disconnect(self.cid1)
-            self.f.canvas.mpl_disconnect(self.cid2)
-            self.f.canvas.mpl_disconnect(self.cid3)
-            self.frame_toolbar.destroy
-            self.toolbar.destroy()
+            self.f.canvas.mpl_disconnect(self.cid)
+            #self.frame_toolbar.destroy
+            #self.toolbar.destroy()
             self.window.quit()
             self.window.destroy()  
 
     def close_window(self):
-        self.f.canvas.mpl_disconnect(self.cid1)
-        self.f.canvas.mpl_disconnect(self.cid2)
-        self.f.canvas.mpl_disconnect(self.cid3)
-        self.frame_toolbar.destroy
-        self.toolbar.destroy()
+        self.f.canvas.mpl_disconnect(self.cid)
+        #self.frame_toolbar.destroy
+        #self.toolbar.destroy()
         self.window.quit()
         self.window.destroy()
         self.section_closed=True  
